@@ -1,0 +1,243 @@
+/* ======================================================
+   ENTROPY RECLAIMERS — Animations
+   ====================================================== */
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(30px, -20px, 0) scale(1.05); }
+  66% { transform: translate3d(-20px, 20px, 0) scale(0.95); }
+}
+
+@keyframes xpPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+
+@keyframes lockPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--danger-glow); }
+  50% { box-shadow: 0 0 0 20px transparent; }
+}
+
+@keyframes scanLine {
+  0% { top: 10%; opacity: 1; }
+  100% { top: 90%; opacity: 0.5; }
+}
+
+@keyframes faceDetect {
+  0% { stroke-dashoffset: 300; opacity: 0; }
+  50% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes avatarBounce {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  25% { transform: translateY(-8px) rotate(2deg); }
+  50% { transform: translateY(-4px) rotate(-1deg); }
+  75% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes avatarTalk {
+  0%, 100% { transform: scaleY(1); }
+  30% { transform: scaleY(0.3); }
+  60% { transform: scaleY(0.7); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes countUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes timerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4), 0 0 40px rgba(16,185,129,0.2); }
+  50% { box-shadow: 0 0 0 16px transparent, 0 0 60px rgba(16,185,129,0.3); }
+}
+
+@keyframes lockShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px) rotate(-1deg); }
+  30% { transform: translateX(6px) rotate(1deg); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+
+@keyframes coinFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(180deg); }
+}
+
+@keyframes glow {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--primary)); }
+  50% { filter: drop-shadow(0 0 16px var(--primary-light)); }
+}
+
+@keyframes progressDraw {
+  from { stroke-dasharray: 0 900; }
+  to { stroke-dasharray: var(--dash) 900; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes starSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.85) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes xpBarFill {
+  from { width: 0%; }
+  to { width: var(--target-width, 60%); }
+}
+
+@keyframes particleFly {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx, 50px), var(--ty, -80px)) scale(0); opacity: 0; }
+}
+
+/* ── Screen Shake (RECO popup dramatic effect) ──── */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-8px, -4px); }
+  20% { transform: translate(8px, 4px); }
+  30% { transform: translate(-6px, 2px); }
+  40% { transform: translate(6px, -2px); }
+  50% { transform: translate(-4px, 4px); }
+  60% { transform: translate(4px, -4px); }
+  70% { transform: translate(-3px, 2px); }
+  80% { transform: translate(3px, -2px); }
+  90% { transform: translate(-1px, 1px); }
+}
+body.screen-shake {
+  animation: screenShake 0.6s ease-in-out;
+}
+
+/* ── Danger Flash (red pulse overlay) ────────────── */
+.danger-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(239,68,68,0.3) 0%, rgba(239,68,68,0) 70%);
+  animation: dangerFlashAnim 1.2s ease-out forwards;
+}
+@keyframes dangerFlashAnim {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  30% { opacity: 0.3; }
+  45% { opacity: 0.8; }
+  60% { opacity: 0.2; }
+  100% { opacity: 0; }
+}
+
+/* ── Stop Sign Pulse (RECO intervention) ─────────── */
+@keyframes stopPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(239,68,68,0.5)); }
+}
+
+/* ── 3D Tower Animations ────────────────────────── */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-6px); }
+}
+
+/* ── Climbing & Celebration Animations ───────────── */
+@keyframes climb {
+  0% { transform: translateX(-50%) translateY(40px); opacity: 0; }
+  60% { transform: translateX(-50%) translateY(-8px); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@keyframes sway {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-50%) rotate(3deg); }
+  75% { transform: translateX(-50%) rotate(-3deg); }
+}
+@keyframes trailDot {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+@keyframes crownPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.08); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+}
+@keyframes celebFly {
+  0% { transform: translate(0, 0) scale(0); opacity: 0; }
+  20% { opacity: 1; transform: translate(0, 0) scale(1.2); }
+  100% { transform: translate(var(--tx, 50px), var(--ty, -80px)) scale(0.5); opacity: 0; }
+}
+@keyframes demonFloat {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 30px rgba(239,68,68,0.5)); }
+  50% { transform: translateY(-10px) scale(1.03); filter: drop-shadow(0 0 50px rgba(239,68,68,0.7)); }
+}

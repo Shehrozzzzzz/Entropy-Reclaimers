@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entropy Reclaimers - Reclaim Your Focus</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/charts.css">
+<link rel="stylesheet" href="css/games.css">
+<link rel="stylesheet" href="css/missions.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7C3AED">
+<script>
+  let deferredPrompt;
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js?v=4')
+        .then(reg => { console.log('SW v4 registered!'); reg.update(); })
+        .catch(err => console.log('SW failed', err));
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('manual-install-btn');
+    if (installBtn) installBtn.style.display = 'flex';
+  });
+
+  function triggerInstall() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted install');
+        document.getElementById('manual-install-btn').style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  }
+
+  // Auto-close sidebar on mobile after clicking link
+  document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth < 900 && sidebar.classList.contains('mobile-open')) {
+      if (e.target.closest('.nav-item') || e.target.closest('.sidebar-logo')) {
+        sidebar.classList.remove('mobile-open');
+      }
+    }
+  });
+</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     INSTRUCTION / GUIDELINES PAGE (shown on first visit)
+     ═══════════════════════════════════════════════════════ -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(180deg,#07071A 0%,#0D0D24 50%,#111128 100%);overflow-y:auto;">
+  <div style="max-width:680px;margin:0 auto;padding:40px 24px 60px;">
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:64px;margin-bottom:12px;animation:demonFloat 3s ease-in-out infinite;">🎓</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:#F0EEFF;letter-spacing:1px;">ENTROPY RECLAIMERS</div>
+      <div style="font-size:14px;color:#9B9BC4;margin-top:6px;">Reduce Chaos. Reclaim Focus. Get Rewarded.</div>
+      <div style="font-size:12px;color:#7C3AED;font-weight:600;margin-top:4px;">Built at NIET — For Students, By Students</div>
+    </div>
+
+    <!-- What is this app -->
+    <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;color:#9D5FFF;margin-bottom:8px;">📱 What is Entropy Reclaimers?</div>
+      <div style="font-size:13px;color:#9B9BC4;line-height:1.8;">Entropy Reclaimers is a <strong style='color:#F0EEFF'>gamified digital wellness platform</strong> designed to help college students reduce excessive screen time. It uses focus timers, XP rewards, real campus vouchers, and AI-powered interventions to build healthier digital habits.</div>
+    </div>
+
+    <!-- Key Features -->
+    <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;color:#10B981;margin-bottom:12px;">✨ Key Features</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🎯</span><div><strong style="color:#F0EEFF;font-size:13px;">Focus Quest Timer</strong><div style="font-size:12px;color:#5A5A80;">Pomodoro-style focus sessions that block distracting apps and earn XP</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">💰</span><div><strong style="color:#F0EEFF;font-size:13px;">NIET Voucher Store</strong><div style="font-size:12px;color:#5A5A80;">Convert focus XP into real campus vouchers — canteen, gym, library perks</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🏆</span><div><strong style="color:#F0EEFF;font-size:13px;">Campus Leaderboard</strong><div style="font-size:12px;color:#5A5A80;">Compete with students across branches — see who focuses the most</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🔒</span><div><strong style="color:#F0EEFF;font-size:13px;">Parental Lock with Face ID</strong><div style="font-size:12px;color:#5A5A80;">Parents register their face — only they can unlock the device when limits are exceeded</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🤖</span><div><strong style="color:#F0EEFF;font-size:13px;">RECO AI Coach</strong><div style="font-size:12px;color:#5A5A80;">AI-powered habit coach that intervenes with facts, taunts, and emotional voice messages</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">👨‍👩‍👧</span><div><strong style="color:#F0EEFF;font-size:13px;">Guardian Dashboard</strong><div style="font-size:12px;color:#5A5A80;">Parents monitor usage, set limits, block apps, and receive smart push alerts</div></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🌍</span><div><strong style="color:#F0EEFF;font-size:13px;">Offline Missions</strong><div style="font-size:12px;color:#5A5A80;">Real-world activities that reward kids for putting the phone DOWN</div></div></div>
+      </div>
+    </div>
+
+    <!-- How to use -->
+    <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;color:#F59E0B;margin-bottom:12px;">📖 How To Use</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#9B9BC4;line-height:1.6;">
+        <div>1️⃣ <strong style='color:#F0EEFF'>Start a Focus Session</strong> — Choose a timer (1min demo, 25min, 50min, or 90min) and stay focused</div>
+        <div>2️⃣ <strong style='color:#F0EEFF'>Earn XP & Coins</strong> — Complete sessions to earn experience points and Reclaim Coins</div>
+        <div>3️⃣ <strong style='color:#F0EEFF'>Redeem Vouchers</strong> — Convert XP to coins, then redeem real NIET campus vouchers</div>
+        <div>4️⃣ <strong style='color:#F0EEFF'>Climb the Leaderboard</strong> — Compete with classmates and see your rank rise</div>
+        <div>5️⃣ <strong style='color:#F0EEFF'>Parent Setup</strong> — Parents use PIN (1234) to access Guardian Dashboard, register face for lock</div>
+        <div>6️⃣ <strong style='color:#F0EEFF'>Install as App</strong> — Click "Install Hub App" in sidebar to use as a standalone mobile app</div>
+      </div>
+    </div>
+
+    <!-- Important notes -->
+    <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:16px;padding:20px;margin-bottom:24px;">
+      <div style="font-size:16px;font-weight:700;color:#EF4444;margin-bottom:10px;">⚠️ Important Notes</div>
+      <div style="font-size:12px;color:#9B9BC4;line-height:1.8;">
+        <div>• Camera permission is required for Face ID enrollment and verification</div>
+        <div>• The app works best on the same WiFi network as the host laptop</div>
+        <div>• Demo PIN for Parent Dashboard: <strong style='color:#F59E0B'>1234</strong></div>
+        <div>• Face registration captures multiple samples for reliable matching</div>
+        <div>• All data is stored locally on device — no cloud uploads</div>
+        <div>• For best Face ID results, ensure good lighting and face the camera directly</div>
+      </div>
+    </div>
+
+    <!-- Agreement checkbox -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;margin-bottom:20px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;" id="onboarding-agree-label">
+        <input type="checkbox" id="onboarding-agree-check" style="width:22px;height:22px;margin-top:2px;accent-color:#7C3AED;flex-shrink:0;cursor:pointer;">
+        <span style="font-size:13px;color:#9B9BC4;line-height:1.6;">I have read and understood the instructions, features, and guidelines of <strong style='color:#F0EEFF'>Entropy Reclaimers</strong>. I agree to use this application responsibly for digital wellness and productivity improvement.</span>
+      </label>
+    </div>
+
+    <!-- Enter button -->
+    <button id="onboarding-enter-btn" disabled onclick="dismissOnboarding()" style="
+      width:100%;padding:16px;border:none;border-radius:99px;
+      font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;
+      letter-spacing:1px;cursor:pointer;transition:all 0.3s;
+      background:linear-gradient(135deg,#3B3B5C,#22224A);color:#5A5A80;
+      pointer-events:none;
+    ">☑️ AGREE & ENTER APP</button>
+
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:#5A5A80;">© 2026 Entropy Reclaimers • NIET Greater Noida • Team Entropy</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN PAGE (shown after guidelines, or on return visits if not logged in)
+     ═══════════════════════════════════════════════════════ -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:99998;background:linear-gradient(180deg,#07071A 0%,#0D0D24 50%,#111128 100%);overflow-y:auto;">
+  <div style="max-width:420px;margin:0 auto;padding:60px 24px;min-height:100vh;display:flex;flex-direction:column;justify-content:center;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px;">
+      <div style="font-size:56px;margin-bottom:10px;">🎓</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:800;color:#F0EEFF;letter-spacing:1px;">ENTROPY RECLAIMERS</div>
+      <div style="font-size:13px;color:#9B9BC4;margin-top:4px;">Login to your account</div>
+    </div>
+
+    <!-- Login Card -->
+    <div style="background:rgba(17,17,40,0.95);border:1px solid rgba(124,58,237,0.25);border-radius:20px;padding:28px;box-shadow:0 0 40px rgba(124,58,237,0.1);">
+      <!-- Username -->
+      <div style="margin-bottom:18px;">
+        <label style="font-size:12px;font-weight:600;color:#9B9BC4;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:6px;">👤 Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" style="
+          width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(124,58,237,0.3);
+          background:#0D0D24;color:#F0EEFF;font-size:15px;font-family:'Inter',sans-serif;
+          outline:none;transition:border-color 0.3s;box-sizing:border-box;
+        " onfocus="this.style.borderColor='#7C3AED';this.style.boxShadow='0 0 0 3px rgba(124,58,237,0.15)'"
+          onblur="this.style.borderColor='rgba(124,58,237,0.3)';this.style.boxShadow='none'">
+      </div>
+
+      <!-- Password -->
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;font-weight:600;color:#9B9BC4;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:6px;">🔒 Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" style="
+          width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(124,58,237,0.3);
+          background:#0D0D24;color:#F0EEFF;font-size:15px;font-family:'Inter',sans-serif;
+          outline:none;transition:border-color 0.3s;box-sizing:border-box;
+        " onfocus="this.style.borderColor='#7C3AED';this.style.boxShadow='0 0 0 3px rgba(124,58,237,0.15)'"
+          onblur="this.style.borderColor='rgba(124,58,237,0.3)';this.style.boxShadow='none'"
+          onkeydown="if(event.key==='Enter')handleLogin()">
+      </div>
+
+      <!-- Error message -->
+      <div id="login-error" style="font-size:12px;color:#EF4444;text-align:center;min-height:18px;margin-bottom:12px;font-weight:600;"></div>
+
+      <!-- Login button -->
+      <button onclick="handleLogin()" style="
+        width:100%;padding:15px;border:none;border-radius:99px;
+        font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;
+        letter-spacing:0.5px;cursor:pointer;transition:all 0.3s;
+        background:linear-gradient(135deg,#7C3AED,#5B21B6);color:white;
+        box-shadow:0 4px 20px rgba(124,58,237,0.4);
+      " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(124,58,237,0.5)'"
+        onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(124,58,237,0.4)'">
+        🚀 LOGIN
+      </button>
+    </div>
+
+    <!-- Demo credentials hint -->
+    <div style="text-align:center;margin-top:20px;padding:14px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:12px;">
+      <div style="font-size:11px;color:#10B981;font-weight:700;margin-bottom:6px;">🔑 DEMO CREDENTIALS</div>
+      <div style="font-size:13px;color:#9B9BC4;">Username: <strong style="color:#F0EEFF">john</strong> &nbsp;|&nbsp; Password: <strong style="color:#F0EEFF">entropy123</strong></div>
+    </div>
+
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:#5A5A80;">© 2026 Entropy Reclaimers • NIET Greater Noida</div>
+  </div>
+</div>
+
+<script>
+  // ── Auth Flow: Guidelines → Login → App ──
+  (function() {
+    const ONBOARD_KEY = 'er_onboarding_final_1';
+    const LOGIN_KEY = 'er_login_final_1';
+
+    // Force reset for testing if ?reset=1 is in URL
+    if (window.location.search.includes('reset=1')) {
+      localStorage.removeItem(ONBOARD_KEY);
+      localStorage.removeItem(LOGIN_KEY);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const needsOnboarding = !localStorage.getItem(ONBOARD_KEY);
+    const needsLogin = !localStorage.getItem(LOGIN_KEY);
+
+    // Hide app if either gate is needed
+    if (needsOnboarding || needsLogin) {
+      document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.querySelector('.main-content');
+        const banner = document.querySelector('.niet-banner');
+        if (sidebar) sidebar.style.visibility = 'hidden';
+        if (main) main.style.visibility = 'hidden';
+        if (banner) banner.style.visibility = 'hidden';
+      });
+    }
+
+    if (needsOnboarding) {
+      document.getElementById('onboarding-overlay').style.display = 'block';
+    } else if (needsLogin) {
+      document.getElementById('login-overlay').style.display = 'block';
+    }
+
+    // Checkbox enables button
+    document.getElementById('onboarding-agree-check').addEventListener('change', function() {
+      const btn = document.getElementById('onboarding-enter-btn');
+      if (this.checked) {
+        btn.disabled = false;
+        btn.style.background = 'linear-gradient(135deg,#7C3AED,#10B981)';
+        btn.style.color = 'white';
+        btn.style.boxShadow = '0 4px 20px rgba(124,58,237,0.4)';
+        btn.style.pointerEvents = 'auto';
+      } else {
+        btn.disabled = true;
+        btn.style.background = 'linear-gradient(135deg,#3B3B5C,#22224A)';
+        btn.style.color = '#5A5A80';
+        btn.style.boxShadow = 'none';
+        btn.style.pointerEvents = 'none';
+      }
+    });
+
+    // Guidelines → Login
+    window.dismissOnboarding = function() {
+      localStorage.setItem(ONBOARD_KEY, 'true');
+      const overlay = document.getElementById('onboarding-overlay');
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        // Show login page
+        document.getElementById('login-overlay').style.display = 'block';
+      }, 500);
+    };
+
+    // Login handler
+    window.handleLogin = function() {
+      const username = document.getElementById('login-username').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value.trim();
+      const errorEl = document.getElementById('login-error');
+
+      if (!username || !password) {
+        errorEl.textContent = '⚠️ Please enter both username and password';
+        return;
+      }
+
+      // Demo credentials
+      if (username === 'john' && password === 'entropy123') {
+        errorEl.style.color = '#10B981';
+        errorEl.textContent = '✅ Welcome back, John!';
+        localStorage.setItem(LOGIN_KEY, JSON.stringify({ user: 'john', loginAt: Date.now() }));
+
+        setTimeout(() => {
+          const overlay = document.getElementById('login-overlay');
+          overlay.style.opacity = '0';
+          overlay.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => {
+            overlay.style.display = 'none';
+            document.getElementById('sidebar').style.visibility = '';
+            document.querySelector('.main-content').style.visibility = '';
+            document.querySelector('.niet-banner').style.visibility = '';
+          }, 500);
+        }, 600);
+      } else {
+        errorEl.textContent = '❌ Invalid credentials. Try john / entropy123';
+        document.getElementById('login-password').value = '';
+      }
+    };
+  })();
+</script>
+
+<div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+
+
+<!-- NIET SLOGAN BANNER -->
+<div class="niet-banner">
+  <div class="niet-banner-inner">
+    <button id="mobile-menu-toggle" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;display:none" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰</button>
+    <span class="niet-banner-logo">🎓 NIET</span>
+    <span class="niet-banner-divider">|</span>
+    <span class="niet-banner-slogan">Born at <strong>NIET</strong> — Built to transform every campus. One college today, a national movement tomorrow.</span>
+    <span class="niet-banner-badge">🚀 Scaling Nationwide</span>
+  </div>
+</div>
+<style>
+  @media (max-width: 900px) {
+    #mobile-menu-toggle { display: block !important; margin-right: 15px; }
+    .niet-banner-inner { justify-content: flex-start !important; }
+  }
+</style>
+
+<div id="toast-container"></div>
+
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-logo"><div class="logo-badge"><div class="logo-icon" style="background:none;box-shadow:none;padding:0;overflow:hidden"><img src="img/logo.png" alt="Entropy Reclaimers" style="width:44px;height:44px;border-radius:12px;object-fit:cover"></div><div class="logo-text"><span class="logo-name">ENTROPY RECLAIMERS</span><span class="logo-tagline">Reduce Chaos. Reclaim Focus.</span></div></div></div>
+<div id="manual-install-btn" onclick="triggerInstall()" style="display:none;margin:10px 15px;padding:12px;background:linear-gradient(135deg,#7C3AED,#10B981);border-radius:12px;cursor:pointer;align-items:center;justify-content:center;gap:10px;animation:stopPulse 2s infinite;box-shadow:0 4px 15px rgba(124,58,237,0.3)">
+  <span style="font-size:18px">📲</span>
+  <span style="font-size:13px;font-weight:800;color:white;letter-spacing:0.5px">INSTALL HUB APP</span>
+</div>
+<div class="sidebar-user"><div class="user-avatar">Z</div><div class="user-info"><div class="user-name">John</div><div class="user-level">&#9889; Level 8 Focus Warrior</div><div class="user-xp-bar"><div class="user-xp-fill"></div></div></div></div>
+<nav class="sidebar-nav">
+<div class="nav-section-label">Student Zone</div>
+<div class="nav-item active" data-page="dashboard"><span class="nav-icon">&#127968;</span>Dashboard</div>
+<div class="nav-item" data-page="focus"><span class="nav-icon">&#127919;</span>Focus Quest</div>
+<div class="nav-item" data-page="rewards"><span class="nav-icon">&#127873;</span>Rewards Store</div>
+<div class="nav-item" data-page="leaderboard"><span class="nav-icon">&#127942;</span>Leaderboard</div>
+<div class="nav-item" data-page="quests"><span class="nav-icon">&#9876;</span>Side Quests<span class="nav-badge" style="background:var(--accent)">NEW</span></div>
+
+<div class="nav-section-label">Guardian</div>
+<div class="nav-item" data-page="lock"><span class="nav-icon">&#128274;</span>Lock Control<span class="nav-badge">!</span></div>
+</nav>
+<div class="sidebar-footer"><button class="parent-toggle"><span class="icon">&#128106;</span>Parent View</button></div>
+</aside>
+
+<main class="main-content">
+<div id="student-view">
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+
+<!-- HERO WELCOME -->
+<div style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(16,185,129,0.08));border:1px solid rgba(124,58,237,0.2);border-radius:20px;padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden">
+  <div style="position:absolute;top:-40px;right:-40px;font-size:120px;opacity:0.06;pointer-events:none">🎓</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+    <div>
+      <div class="page-title" style="margin-bottom:4px">Welcome back, <span>John</span> &#128075;</div>
+      <div style="font-size:14px;color:var(--text-secondary)">DS • 1st Year • ERP: 0251CSDS286</div>
+      <div id="dash-motivation" style="font-size:13px;color:var(--accent);font-weight:600;margin-top:8px">&#128293; 12 day streak! You are on fire!</div>
+    </div>
+    <div class="page-header-actions" style="flex-wrap:wrap">
+      <div class="currency-display">&#128176; <span id="sidebar-coins">15</span></div>
+      <button class="btn btn-outline btn-sm" onclick="ParentDashboard.switchToParentView()">&#128104;&#8205;&#128105;&#8205;&#128103; Parent Dashboard</button>
+      <button class="btn btn-danger btn-sm" id="demo-lock-btn">&#128274; Demo Lock</button>
+      <button class="btn btn-primary btn-sm" id="show-avatar-btn">&#129302; RECO</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="stats-grid">
+<div class="stat-card" style="--card-accent:var(--primary-glow);cursor:pointer" onclick="document.querySelector('[data-page=focus]').click()">
+  <div class="stat-icon">&#9889;</div><div class="stat-label">Total XP</div>
+  <div class="stat-number" style="color:var(--primary-light)" id="sidebar-xp">5,000</div>
+  <div class="stat-change">+60 today • Click to earn more</div>
+</div>
+<div class="stat-card" style="--card-accent:var(--gold-glow);cursor:pointer" onclick="document.querySelector('[data-page=rewards]').click()">
+  <div class="stat-icon">&#128176;</div><div class="stat-label">Reclaim Coins</div>
+  <div class="stat-number" style="color:var(--gold)" id="dash-coins">15</div>
+  <div class="stat-change">&#127915; Click to redeem vouchers</div>
+</div>
+<div class="stat-card" style="--card-accent:var(--accent-glow)">
+  <div class="stat-icon">&#128293;</div><div class="stat-label">Day Streak</div>
+  <div class="stat-number" style="color:var(--accent)">12</div>
+  <div class="stat-change">&#127942; Top 5% of NIET students</div>
+</div>
+<div class="stat-card" style="--card-accent:var(--danger-glow)">
+  <div class="stat-icon">&#128241;</div><div class="stat-label">Screen Time</div>
+  <div class="stat-number" style="color:var(--danger)" id="today-usage-minutes">0m</div>
+  <div class="stat-change neg">&#9201; Daily limit: 120 min</div>
+</div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px">
+  <div class="card" style="text-align:center;cursor:pointer;border-color:rgba(16,185,129,0.2);transition:all 0.2s" onclick="document.querySelector('[data-page=focus]').click()" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:36px;margin-bottom:6px">&#127919;</div>
+    <div style="font-weight:700;font-size:14px">Start Focus Session</div>
+    <div style="font-size:11px;color:var(--accent);margin-top:4px">1 min demo available</div>
+  </div>
+  <div class="card" style="text-align:center;cursor:pointer;border-color:rgba(245,158,11,0.2);transition:all 0.2s" onclick="document.querySelector('[data-page=rewards]').click()" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:36px;margin-bottom:6px">&#127915;</div>
+    <div style="font-weight:700;font-size:14px">Redeem Vouchers</div>
+    <div style="font-size:11px;color:var(--gold);margin-top:4px">NIET canteen, gym & more</div>
+  </div>
+  <div class="card" style="text-align:center;cursor:pointer;border-color:rgba(124,58,237,0.2);transition:all 0.2s" onclick="document.querySelector('[data-page=leaderboard]').click()" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+    <div style="font-size:36px;margin-bottom:6px">&#127942;</div>
+    <div style="font-weight:700;font-size:14px">Leaderboard</div>
+    <div style="font-size:11px;color:var(--primary-light);margin-top:4px">Rank #4 of 12 students</div>
+  </div>
+</div>
+
+<div class="grid-7-5">
+<div>
+<!-- WEEKLY SCREEN TIME -->
+<div class="card card-glow" style="margin-bottom:20px"><div class="card-header"><span class="card-title">&#128202; Weekly Screen Time</span></div><div class="chart-container" style="height:180px"><canvas id="weekly-bar" style="height:180px;width:100%"></canvas></div></div>
+
+<!-- TIME SAVED IMPACT -->
+<div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(6,182,212,0.06));border-color:rgba(16,185,129,0.2)">
+  <div class="card-header"><span class="card-title">&#127793; Time You Saved This Week</span><span class="badge badge-accent">Impact</span></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px">
+    <div style="text-align:center;padding:12px;background:rgba(16,185,129,0.08);border-radius:12px">
+      <div style="font-size:28px">&#128218;</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--accent)">4.2 hrs</div>
+      <div style="font-size:11px;color:var(--text-muted)">Extra study time</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(6,182,212,0.08);border-radius:12px">
+      <div style="font-size:28px">&#128564;</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--cyan)">1.8 hrs</div>
+      <div style="font-size:11px;color:var(--text-muted)">Better sleep gained</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(124,58,237,0.08);border-radius:12px">
+      <div style="font-size:28px">&#128170;</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:var(--primary-light)">23%</div>
+      <div style="font-size:11px;color:var(--text-muted)">Less screen addiction</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP USAGE -->
+<div class="card"><div class="card-header"><span class="card-title">&#128241; App Usage Today</span></div><div id="mini-usage-list" class="app-usage-list"></div></div>
+</div>
+<div>
+<!-- USAGE DONUT -->
+<div class="card card-glow" style="margin-bottom:20px"><div class="card-header"><span class="card-title">&#127919; Usage Breakdown</span></div><div style="display:flex;justify-content:center;padding:10px 0"><canvas id="usage-donut" width="200" height="200"></canvas></div></div>
+<!-- ADDICTION SCORE -->
+<div class="card"><div class="card-header"><span class="card-title">&#129504; Addiction Score</span></div><div style="display:flex;align-items:center;gap:16px"><canvas id="addiction-canvas" width="120" height="120"></canvas><div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Your digital dependency level</div><div class="badge badge-danger">High Risk Zone</div><div style="font-size:12px;color:var(--text-muted);margin-top:8px">Reduce social media to lower score</div></div></div></div>
+<!-- HOW IT WORKS -->
+<div class="card" style="margin-top:20px"><div class="section-title"><div class="dot"></div>How Entropy Reclaimers Works</div><div class="habit-loop"><div class="habit-step"><div class="habit-step-num">&#128640;</div><div class="habit-step-label">Start Focus</div></div><span class="habit-arrow">&#8594;</span><div class="habit-step"><div class="habit-step-num">&#128683;</div><div class="habit-step-label">Apps Blocked</div></div><span class="habit-arrow">&#8594;</span><div class="habit-step"><div class="habit-step-num">&#9203;</div><div class="habit-step-label">Timer Runs</div></div><span class="habit-arrow">&#8594;</span><div class="habit-step"><div class="habit-step-num">&#11088;</div><div class="habit-step-label">Earn XP</div></div><span class="habit-arrow">&#8594;</span><div class="habit-step"><div class="habit-step-num">&#128176;</div><div class="habit-step-label">Get Coins</div></div><span class="habit-arrow">&#8594;</span><div class="habit-step"><div class="habit-step-num">&#127915;</div><div class="habit-step-label">Redeem!</div></div></div></div>
+</div>
+</div>
+</div>
+
+<!-- FOCUS QUEST -->
+<div id="page-focus" class="page">
+<div class="page-header"><div><div class="page-title">&#127919; Focus <span>Quest</span></div><div class="page-subtitle">Block distractions. Earn XP. Level up.</div></div></div>
+<div class="grid-6-6">
+<div>
+<div class="card card-glow">
+<div class="session-modes">
+<div class="session-mode-btn active" data-minutes="1"><div class="mode-time">1</div><div class="mode-name">Demo</div></div>
+<div class="session-mode-btn" data-minutes="25"><div class="mode-time">25</div><div class="mode-name">Pomodoro</div></div>
+<div class="session-mode-btn" data-minutes="50"><div class="mode-time">50</div><div class="mode-name">Power</div></div>
+<div class="session-mode-btn" data-minutes="90"><div class="mode-time">90</div><div class="mode-name">Deep Work</div></div>
+</div>
+<div class="timer-ring-container">
+<div class="timer-svg-wrap">
+<svg class="timer-svg" viewBox="0 0 220 220"><defs><linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7C3AED"/><stop offset="100%" style="stop-color:#10B981"/></linearGradient></defs><circle class="timer-track" cx="110" cy="110" r="100"/><circle class="timer-progress" id="timer-progress" cx="110" cy="110" r="100"/></svg>
+<div class="timer-center"><div class="timer-time" id="timer-display">01:00</div><div class="timer-label">FOCUS SESSION</div></div>
+</div>
+<div class="focus-controls"><button class="btn btn-accent btn-lg" id="timer-start-btn">&#9654; Start Focus</button><button class="btn btn-outline" id="timer-reset-btn">&#8635; Reset</button></div>
+</div>
+<div id="blocked-apps-notice" style="display:none;align-items:center;gap:10px;padding:14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:12px;margin-top:16px"><span style="font-size:20px">&#128683;</span><div><div style="font-size:13px;font-weight:600;color:#F87171">Apps Blocked During Session</div><div style="font-size:11px;color:var(--text-muted)">Instagram, YouTube, Games restricted</div></div></div>
+</div>
+</div>
+<div>
+<div class="card" style="margin-bottom:20px"><div class="card-header"><span class="card-title">&#127942; XP Rewards</span></div><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px"><span>⚡ 1 min Demo</span><span class="badge badge-accent">+30 XP</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface-2);border-radius:10px"><span>25 min Pomodoro</span><span class="badge badge-primary">+60 XP</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface-2);border-radius:10px"><span>50 min Power</span><span class="badge badge-accent">+130 XP</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface-2);border-radius:10px"><span>90 min Deep Work</span><span class="badge badge-gold">+240 XP</span></div></div></div>
+<div class="card"><div class="card-header"><span class="card-title">&#128202; Today Progress</span></div><div style="display:flex;flex-direction:column;gap:14px"><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Daily XP Goal</span><span style="color:var(--primary-light)">360/500</span></div><div class="progress-bar"><div class="progress-fill primary" style="width:72%"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Screen Limit</span><span style="color:var(--danger)">187/120 min</span></div><div class="progress-bar"><div class="progress-fill danger" id="usage-progress-bar" style="width:100%"></div></div></div></div></div>
+</div>
+</div>
+</div>
+
+<!-- REWARDS / NIET VOUCHER STORE -->
+<div id="page-rewards" class="page">
+<div class="page-header">
+<div><div class="page-title">🎓 NIET <span>Voucher Store</span></div><div class="page-subtitle">Convert focus XP → Reclaim Coins → Real college perks at NIET!</div></div>
+<div class="page-header-actions">
+<div class="currency-display">⚡ <span id="rewards-xp-display">2,840</span> XP</div>
+<div class="currency-display" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25)">💰 <span id="coin-display">485</span> Coins</div>
+</div>
+</div>
+
+<!-- XP → COINS CONVERTER -->
+<div class="card card-glow" style="margin-bottom:24px;border-color:rgba(124,58,237,0.25)">
+<div class="card-header"><span class="card-title">🔄 XP → Coin Converter</span><span class="badge badge-primary">2000 XP = 20 Coins</span></div>
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+<div style="flex:1;min-width:200px">
+<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Your XP: <strong style="color:var(--primary-light)" id="converter-xp">2,840</strong></div>
+<div style="display:flex;align-items:center;gap:10px">
+<input type="range" class="range-input" id="xp-convert-slider" min="0" max="2000" step="200" value="2000" style="flex:1"
+  oninput="VoucherStore.updateConvertPreview()">
+<span style="font-size:15px;font-weight:700;color:var(--gold);min-width:80px" id="xp-convert-amount">2000 XP</span>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px">
+<span>0</span><span>400</span><span>800</span><span>1200</span><span>1600</span><span>2000</span>
+</div>
+</div>
+<div style="font-size:28px;color:var(--text-muted)">→</div>
+<div style="text-align:center;min-width:100px">
+<div style="font-size:28px;font-weight:800;color:var(--gold)" id="xp-convert-coins">20</div>
+<div style="font-size:11px;color:var(--text-muted)">Reclaim Coins</div>
+</div>
+<button class="btn btn-primary" id="convert-xp-btn" onclick="VoucherStore.convertXP()" style="min-width:140px">💱 Convert Now</button>
+</div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="card" style="margin-bottom:24px;border-left:3px solid var(--accent)">
+<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:150px">
+<div style="font-size:24px">🎯</div>
+<div><div style="font-size:13px;font-weight:700">Focus Sessions</div><div style="font-size:11px;color:var(--text-muted)">Complete study timers</div></div>
+</div>
+<div style="color:var(--text-muted);font-size:18px">→</div>
+<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:150px">
+<div style="font-size:24px">⚡</div>
+<div><div style="font-size:13px;font-weight:700">Earn XP</div><div style="font-size:11px;color:var(--text-muted)">25min = 60 XP, 50min = 130 XP</div></div>
+</div>
+<div style="color:var(--text-muted);font-size:18px">→</div>
+<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:150px">
+<div style="font-size:24px">💰</div>
+<div><div style="font-size:13px;font-weight:700">Convert to Coins</div><div style="font-size:11px;color:var(--text-muted)">2000 XP = 20 Coins</div></div>
+</div>
+<div style="color:var(--text-muted);font-size:18px">→</div>
+<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:150px">
+<div style="font-size:24px">🎓</div>
+<div><div style="font-size:13px;font-weight:700">Redeem Vouchers</div><div style="font-size:11px;color:var(--text-muted)">Real NIET campus perks!</div></div>
+</div>
+</div>
+</div>
+
+<!-- VOUCHER GRID -->
+<div class="section-title"><div class="dot" style="background:var(--gold);box-shadow:0 0 8px var(--gold)"></div>NIET Campus Vouchers</div>
+<div id="rewards-grid" class="rewards-grid"></div>
+
+<!-- REDEEMED VOUCHERS -->
+<div style="margin-top:28px">
+<div class="section-title"><div class="dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent)"></div>My Vouchers</div>
+<div id="redeemed-vouchers-list" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="page-leaderboard" class="page">
+<div class="page-header"><div><div class="page-title">&#127942; NIET Campus <span>Leaderboard</span></div><div class="page-subtitle">Real-time focus rankings across all NIET branches</div></div>
+<div class="page-header-actions">
+  <button class="btn btn-accent btn-sm" onclick="LeaderboardEngine.simulateLiveXP()">&#9889; Simulate Live XP</button>
+</div>
+</div>
+
+<!-- FILTER BY BRANCH -->
+<div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+  <button class="btn btn-sm lb-filter-btn active" onclick="LeaderboardEngine.filter('all',this)">All Branches</button>
+  <button class="btn btn-sm lb-filter-btn" onclick="LeaderboardEngine.filter('CSE',this)">CSE</button>
+  <button class="btn btn-sm lb-filter-btn" onclick="LeaderboardEngine.filter('DS',this)">DS</button>
+  <button class="btn btn-sm lb-filter-btn" onclick="LeaderboardEngine.filter('IT',this)">IT</button>
+  <button class="btn btn-sm lb-filter-btn" onclick="LeaderboardEngine.filter('ECE',this)">ECE</button>
+  <button class="btn btn-sm lb-filter-btn" onclick="LeaderboardEngine.filter('ME',this)">ME</button>
+</div>
+
+<!-- 3D CLIMBING TOWER -->
+<div class="card card-glow" style="margin-bottom:24px;overflow:hidden;position:relative">
+  <div class="card-header"><span class="card-title">&#127956; 3D Focus Mountain</span><span class="badge badge-gold">Interactive</span></div>
+  <div id="tower-3d" style="perspective:800px;height:340px;position:relative;overflow:hidden;background:linear-gradient(180deg,#0a0a14 0%,#1a1a3e 40%,#2d1b69 70%,#10B981 100%)">
+    <!-- Stars -->
+    <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none" id="tower-stars"></div>
+    <!-- Tower container -->
+    <div id="tower-scene" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%) rotateX(12deg) rotateY(-15deg);transform-style:preserve-3d;width:500px;height:300px"></div>
+  </div>
+</div>
+
+<!-- TOP 3 PODIUM (kept as cards below) -->
+<div id="lb-podium" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px"></div>
+
+<div class="grid-7-5">
+<div>
+  <div class="card card-glow">
+    <div class="card-header">
+      <span class="card-title">&#127885; Campus Rankings</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-outline lb-sort-btn active" onclick="LeaderboardEngine.sort('xp',this)">By XP</button>
+        <button class="btn btn-sm btn-outline lb-sort-btn" onclick="LeaderboardEngine.sort('streak',this)">By Streak</button>
+        <button class="btn btn-sm btn-outline lb-sort-btn" onclick="LeaderboardEngine.sort('focusHrs',this)">By Focus Hrs</button>
+      </div>
+    </div>
+    <div id="leaderboard-list" class="leaderboard-list"></div>
+  </div>
+</div>
+<div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header"><span class="card-title">&#9889; Your Position</span></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Your Rank</span><span id="lb-my-rank" style="font-weight:700;color:var(--primary-light)">#4 of 12</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Your XP</span><span id="lb-my-xp" style="font-weight:700;color:var(--gold)">5,000</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Day Streak</span><span id="lb-my-streak" style="font-weight:700;color:var(--accent)">12 days</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">XP to Next Rank</span><span id="lb-xp-gap" style="font-weight:700;color:var(--danger)">1,890 XP</span></div>
+      <div class="progress-bar" style="margin-top:4px"><div class="progress-fill primary" id="lb-rank-progress" style="width:58%"></div></div>
+    </div>
+  </div>
+  <!-- BRANCH STANDINGS -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">&#127979; Branch Rankings</span></div>
+    <div id="lb-branch-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- SIDE QUESTS -->
+<div id="page-quests" class="page">
+<div class="page-header"><div><div class="page-title">&#9876; Side <span>Quests</span></div><div class="page-subtitle">Complete challenges to earn bonus XP and Reclaim Coins</div></div>
+<div class="page-header-actions">
+  <div class="currency-display">&#9889; <span id="quest-xp-display">5,000</span> XP</div>
+  <div class="currency-display" style="background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25)">&#128176; <span id="quest-coin-display">15</span> Coins</div>
+</div>
+</div>
+
+<!-- QUEST STATS -->
+<div class="stats-grid" id="quest-stats" style="margin-bottom:24px"></div>
+
+<!-- DAILY QUESTS -->
+<div class="card card-glow" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">&#127774; Daily Quests</span><span class="badge badge-primary">Resets daily</span></div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Complete these today for bonus rewards. Mix of online and offline tasks.</div>
+  <div id="daily-quest-list" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- WEEKLY CHALLENGES -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">&#128197; Weekly Challenges</span><span class="badge badge-accent">This week</span></div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Bigger goals, bigger rewards. Complete across the entire week.</div>
+  <div id="weekly-quest-list" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- SIDE / BONUS QUESTS -->
+<div class="card" style="border-color:rgba(245,158,11,0.2)">
+  <div class="card-header"><span class="card-title">&#11088; Bonus Achievements</span><span class="badge badge-gold">One-time</span></div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Special one-time achievements. Complete them once for permanent rewards.</div>
+  <div id="side-quest-list" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+</div>
+
+<!-- LOCK CONTROL -->
+<div id="page-lock" class="page">
+<div class="page-header"><div><div class="page-title">&#128274; Parental <span>Lock Control</span></div><div class="page-subtitle">Guardian Mode &#8212; Lock managed by parents only</div></div></div>
+<div class="grid-6-6">
+<div><div class="card card-glow" style="border-color:rgba(239,68,68,0.2)"><div class="card-header"><span class="card-title">&#128737; Lock Settings</span></div><div class="alert-config"><div class="alert-row"><label>Daily Screen Limit</label><span style="color:var(--gold);font-weight:700" id="limit-val">120 min</span></div><input type="range" class="range-input" id="usage-limit-range" min="30" max="300" value="120" style="width:100%"><div class="alert-row" style="margin-top:10px"><label>Auto-lock on exceed</label><span class="badge badge-danger">Enabled</span></div><div class="alert-row"><label>Notify parent on lock</label><span class="badge badge-accent">Enabled</span></div></div><div style="margin-top:20px;display:flex;flex-direction:column;gap:10px"><button class="btn btn-danger" onclick="ParentalLock.triggerManualLock()">&#128274; Simulate Excessive Use Lock</button>
+<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;">
+  <div style="font-size:12px;color:#10B981;font-weight:700;margin-bottom:8px">&#128100; Real Face ID Setup</div>
+  <button class="btn btn-accent" style="width:100%" onclick="FaceAuth.enrollParent()">&#128247; Register Parent Face (Camera)</button>
+  <div style="font-size:11px;color:#5A5A80;margin-top:6px;">Parent registers once. Only their face can unlock.</div>
+  <button class="btn btn-outline btn-sm" style="width:100%;margin-top:8px" onclick="FaceAuth.clearEnrolledFace()">&#128465; Remove Registered Face</button>
+</div><div style="font-size:12px;color:var(--text-muted);text-align:center">Triggers when daily limit is exceeded</div></div></div></div>
+<div><div class="card"><div class="card-header"><span class="card-title">&#128221; How It Works</span></div><div style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,0.1);border:1px solid var(--danger);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:var(--danger)">1</div><div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Excessive Use Detected</div><div style="font-size:12px;color:var(--text-muted)">App monitors daily screen time and triggers lock when limit exceeded</div></div></div>
+<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(245,158,11,0.1);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:var(--gold)">2</div><div><div style="font-size:13px;font-weight:600;margin-bottom:3px">All Apps Locked</div><div style="font-size:12px;color:var(--text-muted)">Device enters Guardian Mode. Only emergency calls accessible.</div></div></div>
+<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:32px;height:32px;border-radius:50%;background:rgba(16,185,129,0.1);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;color:var(--accent)">3</div><div><div style="font-size:13px;font-weight:600;margin-bottom:3px">Parent Face ID Unlock</div><div style="font-size:12px;color:var(--text-muted)">Only parent biometric authentication can unlock the device.</div></div></div>
+</div></div></div>
+</div>
+</div>
+
+
+
+</div><!-- end student-view -->
+
+<!-- PARENT VIEW -->
+<div id="parent-view" style="display:none">
+<div id="page-parent" class="page active">
+<div class="parent-header"><div class="parent-avatar">&#128106;</div><div class="parent-greeting"><div class="parent-name">Guardian Dashboard</div><div class="parent-sub">Monitoring: John &#8212; NIET B.Tech CS Year 2</div></div><span class="parent-badge">&#128737; Guardian Mode</span></div>
+
+<!-- STOP SCREEN BANNER -->
+<div style="margin-bottom:20px;padding:16px 20px;background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(239,68,68,0.04));border:1px solid rgba(239,68,68,0.25);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+  <div>
+    <div style="font-size:15px;font-weight:700;color:#F87171;margin-bottom:4px">&#128721; Remote Screen Control</div>
+    <div style="font-size:12px;color:var(--text-muted)">Instantly lock your child's device. They won't be able to use any apps until you restore access.</div>
+  </div>
+  <button id="parent-stop-btn" class="btn btn-danger" style="white-space:nowrap;min-width:180px;font-weight:700;font-size:14px" onclick="ParentDashboard.toggleStopScreen()">&#128721; STOP SCREEN NOW</button>
+</div>
+
+<!-- ===== SMART PUSH ALERTS PANEL ===== -->
+<div id="smart-alerts-panel" class="smart-alerts-panel">
+  <div class="smart-alerts-header">
+    <div class="smart-alerts-title"><span class="smart-alerts-icon">&#128276;</span> Smart Push Alerts</div>
+    <span class="badge badge-danger" id="alert-count-badge">0 alerts</span>
+  </div>
+  <div id="smart-alerts-list" class="smart-alerts-list">
+    <!-- Populated by JS -->
+  </div>
+  <div class="smart-alerts-config">
+    <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">&#9881; Alert Thresholds</div>
+    <div class="alert-threshold-grid">
+      <div class="alert-threshold-item">
+        <span class="alert-threshold-label">&#9888; High Usage</span>
+        <div class="alert-threshold-control">
+          <input type="number" id="alert-threshold-high" value="180" min="60" max="600" step="30" class="alert-threshold-input" onchange="ParentDashboard.updateAlertThreshold('high', this.value)">
+          <span class="alert-threshold-unit">min</span>
+        </div>
+      </div>
+      <div class="alert-threshold-item">
+        <span class="alert-threshold-label">&#128680; Critical</span>
+        <div class="alert-threshold-control">
+          <input type="number" id="alert-threshold-critical" value="300" min="120" max="600" step="30" class="alert-threshold-input" onchange="ParentDashboard.updateAlertThreshold('critical', this.value)">
+          <span class="alert-threshold-unit">min</span>
+        </div>
+      </div>
+      <div class="alert-threshold-item">
+        <span class="alert-threshold-label">&#128164; Late Night</span>
+        <div class="alert-threshold-control">
+          <input type="number" id="alert-threshold-latenight" value="22" min="20" max="24" step="1" class="alert-threshold-input" onchange="ParentDashboard.updateAlertThreshold('lateNight', this.value)">
+          <span class="alert-threshold-unit">hrs</span>
+        </div>
+      </div>
+      <div class="alert-threshold-item">
+        <span class="alert-threshold-label">&#127918; Gaming Max</span>
+        <div class="alert-threshold-control">
+          <input type="number" id="alert-threshold-gaming" value="60" min="15" max="180" step="15" class="alert-threshold-input" onchange="ParentDashboard.updateAlertThreshold('gaming', this.value)">
+          <span class="alert-threshold-unit">min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-icon">&#128241;</div><div class="stat-label">Today Screen</div><div class="stat-number" style="color:var(--danger)" id="parent-screen-time">3h 7m</div><div class="stat-change neg" id="parent-screen-sub">&#9888; 67m over limit</div></div>
+<div class="stat-card"><div class="stat-icon">&#128274;</div><div class="stat-label">Locks Today</div><div class="stat-number" style="color:var(--gold)">2</div><div class="stat-change">Parent unlocked</div></div>
+<div class="stat-card"><div class="stat-icon">&#127919;</div><div class="stat-label">Focus Sessions</div><div class="stat-number" style="color:var(--accent)" id="parent-focus-count">0</div><div class="stat-change" id="parent-focus-sub">+0 XP earned</div></div>
+<div class="stat-card"><div class="stat-icon">&#128218;</div><div class="stat-label">Study App Use</div><div class="stat-number" style="color:var(--primary-light)" id="parent-study-time">24m</div><div class="stat-change" id="parent-study-sub">12% of total</div></div>
+</div>
+
+<!-- ===== WEEKLY SUMMARY REPORT ===== -->
+<div class="card card-glow weekly-report-card" style="margin-bottom:24px;border-color:rgba(6,182,212,0.25)">
+  <div class="card-header">
+    <span class="card-title">&#128202; Weekly Summary Report</span>
+    <span class="badge badge-primary">This Week</span>
+  </div>
+  <div class="weekly-report-grid" id="weekly-report-grid">
+    <!-- Populated by JS -->
+  </div>
+  <div class="weekly-report-insights" id="weekly-report-insights">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<div class="grid-7-5">
+<div>
+<div class="card card-glow" style="margin-bottom:20px"><div class="card-header"><span class="card-title">&#128200; 7-Day Usage Trend</span></div><div class="chart-container" style="height:200px"><canvas id="parent-trend" style="height:200px;width:100%"></canvas></div></div>
+<div class="card"><div class="card-header"><span class="card-title">&#128241; App Breakdown</span></div><div id="app-usage-list" class="app-usage-list"></div></div>
+</div>
+<div>
+<div class="card card-glow" style="margin-bottom:20px"><div class="card-header"><span class="card-title">&#127849; Category Split</span></div><div style="display:flex;justify-content:center"><canvas id="parent-donut" width="200" height="200"></canvas></div></div>
+
+<!-- PARENTAL CONTROLS CARD -->
+<div class="card" style="border-color:rgba(124,58,237,0.25)">
+  <div class="card-header"><span class="card-title">&#9881; Parental Controls</span></div>
+
+  <!-- Daily Time Limit Slider -->
+  <div style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <label style="font-size:13px;font-weight:600">&#9200; Daily Screen Limit</label>
+      <span style="color:var(--gold);font-weight:700;font-size:15px" id="parent-limit-val">120 min</span>
+    </div>
+    <input type="range" class="range-input" id="parent-limit-slider" min="30" max="300" step="10" value="120" style="width:100%"
+      oninput="document.getElementById('parent-limit-val').textContent=this.value+' min'"
+      onchange="ParentDashboard.handleLimitChange(this.value)">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px">
+      <span>30 min</span><span>2 hrs</span><span>3 hrs</span><span>5 hrs</span>
+    </div>
+  </div>
+
+  <!-- Alert Settings -->
+  <div class="alert-config">
+    <div class="alert-row"><label>Current Limit</label><span style="color:var(--gold);font-weight:700" id="parent-limit-display">120 min</span></div>
+    <div class="alert-row"><label>Lock Trigger</label><span style="color:var(--danger);font-weight:700">On Exceed</span></div>
+    <div class="alert-row"><label>Reports</label><span class="badge badge-accent">Daily</span></div>
+  </div>
+
+  <button class="btn btn-accent" style="width:100%;margin-top:14px" onclick="showToast('&#128231; Daily report sent!','success')">&#128231; Send Report Now</button>
+  <button class="btn btn-outline" style="width:100%;margin-top:10px" onclick="ParentDashboard.switchToStudentView()">&#8592; Exit Parent Mode</button>
+</div>
+</div>
+</div>
+
+<!-- FOCUS SESSIONS CARD -->
+<div class="grid-12" style="margin-top:20px">
+  <div class="card card-glow" style="margin-bottom:20px;border-color:rgba(16,185,129,0.2)">
+    <div class="card-header"><span class="card-title">&#127919; Focus Quest Sessions (Today)</span><span class="badge badge-accent">Live</span></div>
+    <div id="parent-focus-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- DETAILED ANALYSIS -->
+<div class="grid-12">
+  <div class="card card-glow" style="margin-bottom:20px">
+    <div class="card-header"><span class="card-title">&#128202; Detailed Analysis Report</span></div>
+    <div style="overflow-x:auto;">
+      <table class="analysis-table" id="analysis-table">
+        <thead>
+          <tr>
+            <th>App</th>
+            <th>Category</th>
+            <th>Usage Time</th>
+            <th>% of Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="analysis-table-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="grid-6-6">
+  <div class="card card-glow" style="border-color:rgba(239,68,68,0.2)">
+    <div class="card-header"><span class="card-title">&#9940; App Restrictions (Block / Unblock)</span></div>
+    <div class="app-restrictions-list" id="app-restrictions-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">&#9881;&#65039; Custom App Limits</span></div>
+    <div class="app-limits-list" id="app-limits-list">
+      <!-- Populated by JS -->
+    </div>
+    <button class="btn btn-accent" style="width:100%;margin-top:14px" onclick="ParentDashboard.saveAllLimits()">&#128190; Save Limits</button>
+  </div>
+</div>
+</div>
+</div>
+
+</main>
+
+<!-- ENROLL PARENT FACE MODAL (single authoritative copy) -->
+<div id="enroll-modal" style="display:none;position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;">
+  <div style="background:#12121F;border:1px solid rgba(16,185,129,0.35);border-radius:24px;padding:32px;max-width:380px;width:90%;text-align:center;box-shadow:0 0 60px rgba(16,185,129,0.2);">
+    <div style="font-size:32px;margin-bottom:8px">&#128247;</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:#F0EEFF;margin-bottom:4px">Register Parent Face</div>
+    <div style="font-size:12px;color:#9B9BC4;margin-bottom:16px">Position face clearly in frame with good lighting. This face will be the only one that can unlock the device.</div>
+    <div style="position:relative;border-radius:14px;overflow:hidden;margin-bottom:14px;border:2px solid rgba(16,185,129,0.4);display:inline-block;">
+      <video id="enroll-video" width="300" height="225" autoplay muted playsinline style="display:block;border-radius:12px;"></video>
+    </div>
+    <div id="enroll-status" style="font-size:13px;color:#10B981;margin-bottom:14px;min-height:18px;font-weight:600;">Starting camera...</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="enroll-capture-btn" class="btn btn-accent">&#128247; Capture My Face</button>
+      <button class="btn btn-outline" onclick="FaceAuth.cancelEnroll()">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- LOCK OVERLAY -->
+<div class="lock-overlay" id="lock-overlay">
+<div class="lock-icon-wrap">&#128274;</div>
+<div class="lock-title">DEVICE LOCKED</div>
+<div class="lock-subtitle" id="lock-reason">Excessive screen time detected. Parent authentication required.</div>
+<div class="lock-time" id="lock-time">00:00</div>
+<div class="lock-usage-info">
+<div class="lock-stat"><div class="lock-stat-num" id="lock-usage-display">187m</div><div class="lock-stat-label">Used Today</div></div>
+<div class="lock-stat"><div class="lock-stat-num" id="lock-limit-display">120m</div><div class="lock-stat-label">Daily Limit</div></div>
+</div>
+<div class="faceid-scanner" id="faceid-scanner"><div class="scan-line"></div><div class="faceid-dots" id="faceid-dots"></div><div class="faceid-face"></div></div>
+<div class="faceid-progress" style="width:200px"><div class="progress-bar"><div class="progress-fill accent" id="faceid-progress-fill" style="width:0%"></div></div><div class="faceid-label" id="faceid-label">Scan parent face to unlock</div></div>
+
+<div id="lock-camera-container" style="display:none;flex-direction:column;align-items:center;gap:10px;">
+  <div style="position:relative;border-radius:16px;overflow:hidden;border:2px solid #10B981;box-shadow:0 0 30px rgba(16,185,129,0.3);">
+    <video id="lock-video" width="280" height="210" autoplay muted playsinline style="display:block;border-radius:14px;"></video>
+    <canvas id="lock-canvas" width="280" height="210" style="position:absolute;top:0;left:0;border-radius:14px;pointer-events:none;"></canvas>
+  </div>
+  <div id="lock-face-status" style="font-size:13px;color:#9B9BC4;font-weight:600;text-align:center;max-width:280px;">Initializing camera...</div>
+  <button class="btn btn-outline btn-sm" onclick="FaceAuth.stopCamera();document.getElementById('lock-camera-container').style.display='none';">&#10005; Cancel Scan</button>
+</div>
+<button class="btn btn-accent btn-lg" id="faceid-btn">&#128247; Scan Parent Face (Real Camera)</button>
+<div style="font-size:12px;color:var(--text-muted)">&#128737; Guardian Mode Active &#8212; Only parent can unlock</div>
+</div>
+
+<!-- AVATAR MODAL — DRAMATIC STOP INTERVENTION -->
+<div class="avatar-overlay" id="avatar-overlay">
+<div class="avatar-modal" id="avatar-modal" style="max-width:480px;border:2px solid rgba(239,68,68,0.4);box-shadow:0 0 60px rgba(239,68,68,0.2),0 0 120px rgba(239,68,68,0.08);padding:16px 20px;max-height:90vh;overflow-y:auto">
+<button class="avatar-close" id="avatar-close-btn">&#10005;</button>
+<div class="avatar-timer-bar"><div class="avatar-timer-fill" id="avatar-timer-fill"></div></div>
+
+<!-- DYNAMIC CHARACTER AREA (filled by JS) -->
+<div id="popup-character" style="text-align:center;margin-bottom:10px"></div>
+
+<!-- FACT & TAUNT AREA -->
+<div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:14px">
+  <div style="text-align:left;flex:1">
+    <div id="reco-svg" style="display:none"></div>
+    <div class="avatar-name-badge" id="popup-badge-text">&#9888;&#65039; RECO — Intervention</div>
+    <div class="avatar-fact-title" id="avatar-fact-title" style="font-size:13px;margin-top:4px">Loading...</div>
+  </div>
+</div>
+<div id="avatar-taunt" style="color:#FBBF24;font-weight:700;font-size:14px;margin-bottom:10px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;text-align:center;line-height:1.5"></div>
+<div class="avatar-fact-text" id="avatar-fact-text" style="font-size:12px;line-height:1.6;margin-bottom:8px"></div>
+<div class="avatar-fact-source" id="avatar-fact-source" style="font-size:10px"></div>
+<div id="avatar-slogan" class="avatar-slogan" style="font-size:13px;font-weight:700;color:var(--accent-light);margin-top:8px;padding:8px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;text-align:center"></div>
+<div style="font-size:14px;color:var(--text-muted);margin-top:6px;text-align:center" id="avatar-fact-num">Intervention #1</div>
+<button class="btn btn-danger avatar-cta" id="avatar-got-it-btn" style="width:100%;margin-top:10px;padding:12px;font-size:14px;font-weight:800;letter-spacing:1px">&#9995; I PROMISE TO PUT MY PHONE DOWN</button>
+</div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="avatar-overlay" id="pin-overlay" style="display:none;z-index:8600">
+<div class="pin-modal">
+<div style="text-align:center"><div style="font-size:32px;margin-bottom:8px">&#128106;</div><div style="font-family:Space Grotesk,sans-serif;font-size:18px;font-weight:700">Parent Access</div><div style="font-size:13px;color:var(--text-muted);margin-top:4px">Enter 4-digit PIN (demo: 1234)</div></div>
+<div class="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+<div class="pin-pad">
+<button class="pin-key" data-key="1">1</button><button class="pin-key" data-key="2">2</button><button class="pin-key" data-key="3">3</button>
+<button class="pin-key" data-key="4">4</button><button class="pin-key" data-key="5">5</button><button class="pin-key" data-key="6">6</button>
+<button class="pin-key" data-key="7">7</button><button class="pin-key" data-key="8">8</button><button class="pin-key" data-key="9">9</button>
+<button class="pin-key" data-key="DEL" style="font-size:14px">&#9003;</button><button class="pin-key" data-key="0">0</button><button class="pin-key" id="pin-cancel-btn" style="font-size:12px;color:var(--danger)">&#10005;</button>
+</div>
+</div>
+</div>
+
+<!-- ===== AI CHATBOT (RECO for Parents) ===== -->
+<div id="ai-chatbot-fab" class="ai-chatbot-fab" onclick="ParentAIChatbot.toggle()">
+  <div class="ai-chatbot-fab-icon">&#129302;</div>
+  <div class="ai-chatbot-fab-pulse"></div>
+</div>
+
+<div id="ai-chatbot-modal" class="ai-chatbot-modal">
+  <div class="ai-chatbot-container">
+    <div class="ai-chatbot-header">
+      <div class="ai-chatbot-header-left">
+        <div class="ai-chatbot-avatar">&#129302;</div>
+        <div>
+          <div class="ai-chatbot-name">RECO AI &#8212; Parent Assistant</div>
+          <div class="ai-chatbot-status"><span class="ai-chatbot-dot"></span> Online &bull; Analyzing John's data</div>
+        </div>
+      </div>
+      <button class="ai-chatbot-close" onclick="ParentAIChatbot.toggle()">&#10005;</button>
+    </div>
+    <div class="ai-chatbot-messages" id="ai-chatbot-messages">
+      <!-- Populated by JS -->
+    </div>
+    <div class="ai-chatbot-suggestions" id="ai-chatbot-suggestions">
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('summary')">&#128202; Full Report Summary</button>
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('most_used')">&#128241; Most Used Apps</button>
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('weekly')">&#128197; Weekly Analysis</button>
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('concern')">&#9888; Concern Areas</button>
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('tips')">&#128161; Improvement Tips</button>
+      <button class="ai-chatbot-suggestion" onclick="ParentAIChatbot.askQuestion('addiction')">&#129504; Addiction Risk</button>
+    </div>
+    <div class="ai-chatbot-input-area">
+      <input type="text" class="ai-chatbot-input" id="ai-chatbot-input" placeholder="Ask RECO about your child's usage..." onkeydown="if(event.key==='Enter')ParentAIChatbot.sendMessage()">
+      <button class="ai-chatbot-send" onclick="ParentAIChatbot.sendMessage()">&#10148;</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Models loaded on-demand by faceauth.js when user needs face recognition -->
+<script src="js/data.js?v=5"></script>
+<script src="js/charts.js?v=5"></script>
+<script src="js/avatar.js?v=5"></script>
+<script src="js/lock.js?v=5"></script>
+<script src="js/timer.js?v=5"></script>
+<script src="js/parent.js?v=5"></script>
+<script src="js/chatbot.js?v=5"></script>
+<script src="js/faceauth.js?v=5"></script>
+
+<script src="js/voucher.js?v=5"></script>
+<script src="js/quests.js?v=5"></script>
+<script src="js/app.js?v=5"></script>
+<script>
+document.getElementById('usage-limit-range').addEventListener('input',function(){document.getElementById('limit-val').textContent=this.value+' min';});
+</script>
+
+
+</body>
+</html>

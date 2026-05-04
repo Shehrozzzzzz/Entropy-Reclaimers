@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+.DS_Store
+Thumbs.db
+build.js
+patch.js
+patch_html.js
+repair.js
+fix_name.js
