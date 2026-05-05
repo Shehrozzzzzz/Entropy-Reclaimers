@@ -1,3 +1,4 @@
+/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
 // ======================================================
 // ENTROPY RECLAIMERS â€” College Onboarding & Multi-Campus
 // ======================================================
