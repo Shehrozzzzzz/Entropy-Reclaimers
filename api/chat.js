@@ -49,15 +49,13 @@ module.exports = async (req, res) => {
       });
     }
 
-    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
-Your mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
-CRITICAL RULE: Output ONLY your final HTML answer directly to the user. Do NOT include any internal thoughts, reasoning steps, or scratchpad text.
-Formatting guidelines:
-- Return clean HTML output suitable for innerHTML insertion.
-- Use <strong>, <br>, <em>, <span> tags.
-- Use CSS classes for key stats: class="chat-accent" (green/healthy), class="chat-danger" (red/over limit), class="chat-gold" (warning/gaming).
-- Keep responses concise (under 200 words), encouraging, and structured.
-- Include relevant emojis.`;
+    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app (created by Shehroz).
+CRITICAL RULES FOR RESPONSES:
+1. ALWAYS give a direct, accurate, and to-the-point answer to the user's question FIRST.
+2. If asked about who created/founded ChatGPT: State clearly that ChatGPT was created by OpenAI, co-founded by Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.
+3. If asked who built this app or Entropy Reclaimers: State clearly that "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
+4. If asked about screen time, app usage, or parental advice, use the student analytics provided.
+5. Do NOT lecture or force off-topic questions back to screen time unless relevant. Be direct, helpful, friendly, and format with clean HTML tags (<strong>, <br>, <em>) and emojis.`;
 
     const userPayload = `Child/Student Context Data:
 ${JSON.stringify(analytics || {}, null, 2)}
@@ -109,11 +107,9 @@ User Question/Prompt:
           const data = await apiRes.json();
           reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
           
-          // Clean up if there is any markdown or thinking prefix
           if (reply.includes('```')) {
             reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
           }
-          // If response contained chain-of-thought blocks, isolate the final answer
           if (reply.includes('\n\n') && (reply.startsWith('* ') || reply.startsWith('User Role:'))) {
             const parts = reply.split('\n\n');
             reply = parts[parts.length - 1];
