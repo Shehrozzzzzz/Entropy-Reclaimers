@@ -1,8 +1,7 @@
 ﻿/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
 // ======================================================
 // ENTROPY RECLAIMERS - AI Chatbot (RECO for Parents)
-// Analyzes child's usage data with Real AI (Gemini API)
-// and provides intelligent parental insights & recommendations
+// Multi-tier AI Engine: Local Storage Key -> Serverless API -> Local Engine
 // ======================================================
 
 const ParentAIChatbot = (() => {
@@ -78,7 +77,7 @@ const ParentAIChatbot = (() => {
     };
   }
 
-  // Fallback Local Analytics Engine (Runs if offline or no API key set)
+  // Local Rule Engine (Runs if offline or no API key set)
   function getLocalResponse(questionType) {
     const a = getAnalytics();
     const totalH = Math.floor(a.total / 60);
@@ -187,30 +186,63 @@ const ParentAIChatbot = (() => {
       `Ask me about specific apps, bedtime rules, or study routines! 💡`;
   }
 
-  // Fetch response from Vercel AI Serverless Endpoint `/api/chat` with automatic fallback
-  async function fetchAIResponse(userPrompt, questionType = null) {
+  // Direct Gemini REST API Call
+  async function callGeminiDirect(userPrompt, apiKey) {
     const analytics = getAnalytics();
+    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
+Mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
+Formatting: HTML tags <strong>, <br>, <em>, <span class="chat-accent">, <span class="chat-danger">, <span class="chat-gold">. Short & friendly with emojis.`;
+
+    const userPayload = `Child Context Data: ${JSON.stringify(analytics, null, 2)}\nUser Question: "${userPrompt}"`;
+
+    const res = await fetch(geminiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPayload}` }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
+      })
+    });
+
+    if (!res.ok) throw new Error('API Request Failed');
+    const data = await res.json();
+    let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+  }
+
+  // Multi-tier response selector
+  async function fetchAIResponse(userPrompt, questionType = null) {
+    const savedKey = localStorage.getItem('reco_gemini_key');
+
+    // 1. Try Direct Gemini Call if user saved key locally
+    if (savedKey) {
+      try {
+        const directReply = await callGeminiDirect(userPrompt, savedKey);
+        if (directReply) return directReply;
+      } catch (e) {
+        console.warn("Direct Gemini call failed, trying serverless API.", e);
+      }
+    }
+
+    // 2. Try Serverless Endpoint /api/chat
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: userPrompt,
-          analytics: analytics
-        })
+        body: JSON.stringify({ prompt: userPrompt, analytics: getAnalytics() })
       });
 
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.reply) {
-          return data.reply;
-        }
+        if (data.success && data.reply) return data.reply;
       }
     } catch (e) {
       console.warn("Serverless AI endpoint unreachable, using local fallback.", e);
     }
 
-    // Fallback if API key not set or endpoint fails
+    // 3. Fallback to Local Rule Engine
     return getLocalResponse(questionType || userPrompt);
   }
 
@@ -246,6 +278,21 @@ const ParentAIChatbot = (() => {
     const botReply = await fetchAIResponse(text);
     removeTyping();
     addBotMessage(botReply);
+  }
+
+  // Prompt user to store Gemini API Key directly in app localStorage if desired
+  function promptKeySetup() {
+    const currentKey = localStorage.getItem('reco_gemini_key') || '';
+    const newKey = prompt('🔑 Enter your Gemini API Key to enable live AI responses:\n(Leave empty to clear)', currentKey);
+    if (newKey !== null) {
+      if (newKey.trim()) {
+        localStorage.setItem('reco_gemini_key', newKey.trim());
+        alert('✅ Gemini API Key saved locally on your device! RECO AI is now live!');
+      } else {
+        localStorage.removeItem('reco_gemini_key');
+        alert('ℹ️ Gemini API Key cleared. RECO AI will use Vercel API or local smart responses.');
+      }
+    }
   }
 
   // DOM helpers
@@ -284,6 +331,6 @@ const ParentAIChatbot = (() => {
 
   return {
     toggle, showFab, hideFab,
-    askQuestion, sendMessage
+    askQuestion, sendMessage, promptKeySetup
   };
 })();
