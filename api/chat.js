@@ -45,17 +45,9 @@ module.exports = async (req, res) => {
     if (!apiKey) {
       return res.status(200).json({
         fallback: true,
-        reason: 'No API key configured. Using intelligent local rule engine.',
-        debug: {
-          hasEnvGeminiKey: !!process.env.GEMINI_API_KEY,
-          hasEnvOpenAIKey: !!process.env.OPENAI_API_KEY,
-          receivedPrompt: prompt
-        }
+        reason: 'No API key configured. Using intelligent local rule engine.'
       });
     }
-
-    // Call Gemini 1.5 Flash endpoint
-    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
 Your mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
@@ -72,37 +64,52 @@ ${JSON.stringify(analytics || {}, null, 2)}
 User Question/Prompt:
 "${prompt}"`;
 
-    const apiRes = await fetch(geminiEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: `${systemPrompt}\n\n${userPayload}` }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500
-        }
-      })
-    });
+    // Try Gemini model variants
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.5-pro'];
+    let reply = '';
+    let lastError = null;
 
-    if (!apiRes.ok) {
-      const errDetail = await apiRes.text();
-      console.error('Gemini API request failed:', errDetail);
+    for (const model of models) {
+      try {
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const apiRes = await fetch(geminiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemPrompt}\n\n${userPayload}` }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500
+            }
+          })
+        });
+
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (reply) break;
+        } else {
+          lastError = await apiRes.text();
+        }
+      } catch (e) {
+        lastError = e.message;
+      }
+    }
+
+    if (!reply) {
       return res.status(200).json({
         fallback: true,
-        reason: 'AI service unavailable or key limit reached.',
-        error: errDetail
+        reason: 'AI service model unavailable.',
+        error: lastError
       });
     }
 
-    const data = await apiRes.json();
-    let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    // Strip markdown code blocks if the AI returned ```html ... ```
+    // Strip markdown code blocks
     reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
 
     return res.status(200).json({
