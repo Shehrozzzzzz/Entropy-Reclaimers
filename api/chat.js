@@ -25,28 +25,38 @@ function extractFinalHTML(rawText) {
   if (!rawText) return '';
   let text = rawText;
 
-  // Strip code blocks
+  // 1. Remove code blocks
   text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
 
-  // Isolate text starting from the actual HTML response tag (<p>, <strong>, etc.)
-  const pIndex = text.search(/<p>/i);
-  if (pIndex !== -1) {
-    text = text.substring(pIndex);
-  } else {
-    const tagIndex = text.search(/<(strong|div|span|em)>/i);
-    if (tagIndex !== -1) {
-      text = text.substring(tagIndex);
-    }
+  // 2. If Gemini included a Draft marker, take the content after the last Draft marker
+  if (/Draft\s*\d*:/i.test(text)) {
+    const draftParts = text.split(/Draft\s*\d*:/i);
+    text = draftParts[draftParts.length - 1];
   }
 
-  // Remove trailing thinking bullets if any exist after the response
+  // 3. Strip lines that are evaluation bullets or thinking notes
   const lines = text.split('\n').filter(line => {
     const l = line.trim();
-    if (l.startsWith('*   Direct') || l.startsWith('*   Clear') || l.startsWith('*   Clean')) return false;
+    if (!l) return false;
+    if (l.startsWith('*') || l.startsWith('-') || l.startsWith('#') || l.startsWith('`')) return false;
+    if (l.includes('Constraint:') || l.includes('Directive:') || l.includes('Check against') || l.includes('Knowledge Facts:')) return false;
     return true;
   });
 
-  return lines.join('\n').replace(/`/g, '').trim();
+  let result = lines.join('\n').replace(/`/g, '').trim();
+
+  // 4. Ensure we isolate starting from <p> or <strong> tag
+  const pIdx = result.indexOf('<p>');
+  if (pIdx > 0) {
+    result = result.substring(pIdx);
+  } else if (pIdx === -1) {
+    const tagIdx = result.search(/<(strong|div|span|em)>/i);
+    if (tagIdx > 0) {
+      result = result.substring(tagIdx);
+    }
+  }
+
+  return result.trim();
 }
 
 module.exports = async (req, res) => {
