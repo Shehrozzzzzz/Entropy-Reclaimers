@@ -1,4 +1,5 @@
 ﻿// Vercel Serverless Function: RECO AI Chatbot API Endpoint
+// Supports Google Gemini API key via process.env.GEMINI_API_KEY or user-provided key
 
 function parseBody(req) {
   return new Promise((resolve) => {
@@ -20,33 +21,26 @@ function parseBody(req) {
   });
 }
 
-function sanitizeAIOutput(rawText) {
+function cleanResponseText(rawText) {
   if (!rawText) return '';
   let text = rawText;
 
-  // Strip markdown code fences (```html or ```)
+  // Strip code fences
   text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
 
-  // If output contains a Draft section, grab only the draft content
-  if (text.includes('Draft:')) {
-    text = text.split('Draft:').pop();
-  }
+  // Split into lines and filter out any reasoning/thinking lines
+  const lines = text.split('\n').map(l => l.trim());
+  const cleanLines = lines.filter(line => {
+    if (!line) return false;
+    // Drop scratchpad bullets and prompt echo lines
+    if (line.startsWith('*') || line.startsWith('-') || line.startsWith('#')) return false;
+    if (line.includes('User Prompt:') || line.includes('Key Facts:') || line.includes('Constraints:') || line.includes('Directives:')) return false;
+    return true;
+  });
 
-  // Remove evaluation lists/checklists (lines starting with * or - followed by questions/checks)
-  text = text.split('\n')
-    .filter(line => {
-      const l = line.trim();
-      if (l.startsWith('*') && (l.includes('?') || l.includes('Yes') || l.includes('Role:') || l.includes('Goal:') || l.includes('Direct answer') || l.includes('HTML only'))) {
-        return false;
-      }
-      return true;
-    })
-    .join('\n');
-
-  // Strip stray backticks and leading/trailing quotes
-  text = text.replace(/`/g, '').trim();
-
-  return text;
+  let result = cleanLines.join('<br>');
+  result = result.replace(/`/g, '').trim();
+  return result;
 }
 
 module.exports = async (req, res) => {
@@ -78,12 +72,11 @@ module.exports = async (req, res) => {
     }
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app (created by Shehroz).
-Provide a direct, neat, clear, and to-the-point answer.
-Do NOT include any internal thoughts, draft notes, checklists, or meta-explanations.
-Key Facts:
-- ChatGPT Founder: OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, Wojciech Zaremba, John Schulman).
-- App Creator: Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus.
-Output format: Clean, short HTML (<p>, <strong>, <br>) with emojis.`;
+Directives:
+1. Provide a direct, friendly, and helpful response.
+2. If asked about ChatGPT founder: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
+3. If asked about this app: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
+4. Respond ONLY with HTML paragraphs (<p>...</p>) and bold tags (<strong>...</strong>) with emojis. Do not output planning thoughts or checklists.`;
 
     const userPayload = `Child Context Data: ${JSON.stringify(analytics || {})}\nUser Prompt: "${prompt}"`;
 
@@ -120,8 +113,8 @@ Output format: Clean, short HTML (<p>, <strong>, <br>) with emojis.`;
               }
             ],
             generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 300
+              temperature: 0.7,
+              maxOutputTokens: 500
             }
           })
         });
@@ -129,7 +122,7 @@ Output format: Clean, short HTML (<p>, <strong>, <br>) with emojis.`;
         if (apiRes.ok) {
           const data = await apiRes.json();
           const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          reply = sanitizeAIOutput(raw);
+          reply = cleanResponseText(raw);
           if (reply) break;
         } else {
           lastError = await apiRes.text();
