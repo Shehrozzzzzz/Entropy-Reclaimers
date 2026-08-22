@@ -21,28 +21,6 @@ function parseBody(req) {
   });
 }
 
-function cleanResponseText(rawText) {
-  if (!rawText) return '';
-  let text = rawText;
-
-  // Strip code fences
-  text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
-
-  // Split into lines and filter out any reasoning/thinking lines
-  const lines = text.split('\n').map(l => l.trim());
-  const cleanLines = lines.filter(line => {
-    if (!line) return false;
-    // Drop scratchpad bullets and prompt echo lines
-    if (line.startsWith('*') || line.startsWith('-') || line.startsWith('#')) return false;
-    if (line.includes('User Prompt:') || line.includes('Key Facts:') || line.includes('Constraints:') || line.includes('Directives:')) return false;
-    return true;
-  });
-
-  let result = cleanLines.join('<br>');
-  result = result.replace(/`/g, '').trim();
-  return result;
-}
-
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -61,7 +39,6 @@ module.exports = async (req, res) => {
   try {
     const body = await parseBody(req);
     const prompt = body.prompt || req.query?.prompt || 'Hello';
-    const analytics = body.analytics || {};
     const apiKey = body.apiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -71,14 +48,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app (created by Shehroz).
-Directives:
-1. Provide a direct, friendly, and helpful response.
-2. If asked about ChatGPT founder: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
-3. If asked about this app: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
-4. Respond ONLY with HTML paragraphs (<p>...</p>) and bold tags (<strong>...</strong>) with emojis. Do not output planning thoughts or checklists.`;
-
-    const userPayload = `Child Context Data: ${JSON.stringify(analytics || {})}\nUser Prompt: "${prompt}"`;
+    const systemInstructionText = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app.
+Important Facts:
+- Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus.
+- ChatGPT was created by OpenAI (co-founded by Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, Wojciech Zaremba, John Schulman).
+Answer the user's question directly, clearly, and concisely in clean HTML (<p>, <strong>, <br>) with emojis. Do not output any thoughts, checklists, or instructions.`;
 
     let candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
     try {
@@ -106,23 +80,29 @@ Directives:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            system_instruction: {
+              parts: [{ text: systemInstructionText }]
+            },
             contents: [
               {
                 role: 'user',
-                parts: [{ text: `${systemPrompt}\n\n${userPayload}` }]
+                parts: [{ text: prompt }]
               }
             ],
             generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 500
+              temperature: 0.4,
+              maxOutputTokens: 300
             }
           })
         });
 
         if (apiRes.ok) {
           const data = await apiRes.json();
-          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          reply = cleanResponseText(raw);
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          // Strip code fences if present
+          reply = reply.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '').trim();
+
           if (reply) break;
         } else {
           lastError = await apiRes.text();
