@@ -21,6 +21,34 @@ function parseBody(req) {
   });
 }
 
+function cleanResponseText(rawText) {
+  if (!rawText) return '';
+  let text = rawText;
+
+  // 1. Remove markdown code fence blocks if present
+  text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
+
+  // 2. If Gemini included self-check bullets or scratchpad text, isolate the actual HTML
+  if (text.includes('`<strong>') || text.includes('<strong>')) {
+    // Extract everything from the last occurrence of <strong> or `<strong>
+    const lastBacktickCode = text.lastIndexOf('`<strong>');
+    if (lastBacktickCode !== -1) {
+      text = text.substring(lastBacktickCode).replace(/`/g, '');
+    }
+  }
+
+  // 3. Remove lingering evaluation checklists like "* Direct answer first? Yes."
+  text = text.split('\n')
+    .filter(line => !line.trim().startsWith('*   Direct answer') &&
+                    !line.trim().startsWith('*   ChatGPT') &&
+                    !line.trim().startsWith('*   App builder') &&
+                    !line.trim().startsWith('*   Only HTML') &&
+                    !line.trim().startsWith('*   Emojis included'))
+    .join('\n');
+
+  return text.trim();
+}
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -49,13 +77,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app (created by Shehroz).
-CRITICAL INSTRUCTION: Output ONLY your final HTML answer to the user. Do NOT include thinking notes or draft sections.
-Rules:
-1. ALWAYS give a direct, accurate, and to-the-point answer FIRST.
-2. If asked who created/founded ChatGPT: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
-3. If asked who built this app / Entropy Reclaimers: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
-4. Format output directly in clean HTML (<strong>, <br>, <em>) with relevant emojis.`;
+    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app (created by Shehroz).
+Provide a direct, friendly, and helpful response formatted ONLY in clean HTML (<p>, <strong>, <br>, <em>) with relevant emojis.
+- If asked about ChatGPT founder: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
+- If asked about this app: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
+Do NOT output any markdown, code blocks, or internal thinking steps.`;
 
     const userPayload = `Child Context Data: ${JSON.stringify(analytics || {})}\nUser Prompt: "${prompt}"`;
 
@@ -100,18 +126,8 @@ Rules:
 
         if (apiRes.ok) {
           const data = await apiRes.json();
-          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          
-          if (reply.includes('```')) {
-            reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
-          }
-          if (reply.includes('Draft:')) {
-            reply = reply.split('Draft:')[1];
-          } else if (reply.includes('\n\n') && (reply.startsWith('* ') || reply.startsWith('Role:'))) {
-            const parts = reply.split('\n\n');
-            reply = parts[parts.length - 1];
-          }
-
+          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          reply = cleanResponseText(raw);
           if (reply) break;
         } else {
           lastError = await apiRes.text();
@@ -131,7 +147,7 @@ Rules:
 
     return res.status(200).json({
       success: true,
-      reply: reply.trim()
+      reply: reply
     });
 
   } catch (error) {
