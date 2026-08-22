@@ -64,12 +64,27 @@ ${JSON.stringify(analytics || {}, null, 2)}
 User Question/Prompt:
 "${prompt}"`;
 
-    // Try Gemini model variants
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.5-pro'];
+    // Dynamically discover supported models for this API key
+    let candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+    try {
+      const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        const validModels = (listData.models || [])
+          .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+          .map(m => m.name.replace(/^models\//, ''));
+        if (validModels.length > 0) {
+          candidateModels = validModels;
+        }
+      }
+    } catch (e) {
+      console.warn('Model auto-discovery failed:', e);
+    }
+
     let reply = '';
     let lastError = null;
 
-    for (const model of models) {
+    for (const model of candidateModels) {
       try {
         const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const apiRes = await fetch(geminiEndpoint, {
@@ -104,7 +119,7 @@ User Question/Prompt:
     if (!reply) {
       return res.status(200).json({
         fallback: true,
-        reason: 'AI service model unavailable.',
+        reason: 'AI service model response empty.',
         error: lastError
       });
     }
