@@ -1,4 +1,4 @@
-﻿/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
+/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
 // ======================================================
 // ENTROPY RECLAIMERS - AI Chatbot (RECO for Parents)
 // Multi-tier AI Engine: Local Storage Key -> Serverless API -> Local Engine

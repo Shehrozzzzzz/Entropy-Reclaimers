@@ -1,4 +1,4 @@
-/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
+/* ï¿½ 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
 // ======================================================
 // ENTROPY RECLAIMERS â€” Feature 2: Parent Dashboard
 // Full parental control: reports, stop screen, time limits,

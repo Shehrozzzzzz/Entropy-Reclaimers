@@ -1,4 +1,4 @@
-/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
+/* ï¿½ 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
 // ======================================================
 // ENTROPY RECLAIMERS â€” Real Face Recognition (face-api.js)
 // Anti-Spoofing: Blink + Mouth Challenge
