@@ -51,11 +51,12 @@ module.exports = async (req, res) => {
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
 Your mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
+CRITICAL RULE: Output ONLY your final HTML answer directly to the user. Do NOT include any internal thoughts, reasoning steps, or scratchpad text.
 Formatting guidelines:
 - Return clean HTML output suitable for innerHTML insertion.
 - Use <strong>, <br>, <em>, <span> tags.
 - Use CSS classes for key stats: class="chat-accent" (green/healthy), class="chat-danger" (red/over limit), class="chat-gold" (warning/gaming).
-- Keep responses concise (under 200 words), encouraging, and structured with bullet points or numbered lists where appropriate.
+- Keep responses concise (under 200 words), encouraging, and structured.
 - Include relevant emojis.`;
 
     const userPayload = `Child/Student Context Data:
@@ -65,7 +66,7 @@ User Question/Prompt:
 "${prompt}"`;
 
     // Dynamically discover supported models for this API key
-    let candidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+    let candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
     try {
       const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       if (listRes.ok) {
@@ -107,6 +108,17 @@ User Question/Prompt:
         if (apiRes.ok) {
           const data = await apiRes.json();
           reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          // Clean up if there is any markdown or thinking prefix
+          if (reply.includes('```')) {
+            reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+          }
+          // If response contained chain-of-thought blocks, isolate the final answer
+          if (reply.includes('\n\n') && (reply.startsWith('* ') || reply.startsWith('User Role:'))) {
+            const parts = reply.split('\n\n');
+            reply = parts[parts.length - 1];
+          }
+
           if (reply) break;
         } else {
           lastError = await apiRes.text();
@@ -124,12 +136,9 @@ User Question/Prompt:
       });
     }
 
-    // Strip markdown code blocks
-    reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
-
     return res.status(200).json({
       success: true,
-      reply: reply
+      reply: reply.trim()
     });
 
   } catch (error) {
