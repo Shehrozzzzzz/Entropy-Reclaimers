@@ -21,6 +21,34 @@ function parseBody(req) {
   });
 }
 
+function extractFinalHTML(rawText) {
+  if (!rawText) return '';
+  let text = rawText;
+
+  // Strip code blocks
+  text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
+
+  // Isolate text starting from the actual HTML response tag (<p>, <strong>, etc.)
+  const pIndex = text.search(/<p>/i);
+  if (pIndex !== -1) {
+    text = text.substring(pIndex);
+  } else {
+    const tagIndex = text.search(/<(strong|div|span|em)>/i);
+    if (tagIndex !== -1) {
+      text = text.substring(tagIndex);
+    }
+  }
+
+  // Remove trailing thinking bullets if any exist after the response
+  const lines = text.split('\n').filter(line => {
+    const l = line.trim();
+    if (l.startsWith('*   Direct') || l.startsWith('*   Clear') || l.startsWith('*   Clean')) return false;
+    return true;
+  });
+
+  return lines.join('\n').replace(/`/g, '').trim();
+}
+
 module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -48,11 +76,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    const systemInstructionText = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app.
-Important Facts:
+    const systemInstructionText = `You are RECO AI, a friendly assistant for Entropy Reclaimers app.
+Knowledge Facts:
 - Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus.
 - ChatGPT was created by OpenAI (co-founded by Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, Wojciech Zaremba, John Schulman).
-Answer the user's question directly, clearly, and concisely in clean HTML (<p>, <strong>, <br>) with emojis. Do not output any thoughts, checklists, or instructions.`;
+Always format response inside <p>...</p> HTML tags with <strong> and emojis. Do not output planning thoughts.`;
 
     let candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
     try {
@@ -90,7 +118,7 @@ Answer the user's question directly, clearly, and concisely in clean HTML (<p>, 
               }
             ],
             generationConfig: {
-              temperature: 0.4,
+              temperature: 0.3,
               maxOutputTokens: 300
             }
           })
@@ -98,11 +126,8 @@ Answer the user's question directly, clearly, and concisely in clean HTML (<p>, 
 
         if (apiRes.ok) {
           const data = await apiRes.json();
-          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          
-          // Strip code fences if present
-          reply = reply.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '').trim();
-
+          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          reply = extractFinalHTML(raw);
           if (reply) break;
         } else {
           lastError = await apiRes.text();
