@@ -25,26 +25,20 @@ function cleanResponseText(rawText) {
   if (!rawText) return '';
   let text = rawText;
 
-  // 1. Remove markdown code fence blocks if present
-  text = text.replace(/^```html\s*/gi, '').replace(/^```\s*/gi, '').replace(/\s*```$/gi, '');
-
-  // 2. If Gemini included self-check bullets or scratchpad text, isolate the actual HTML
-  if (text.includes('`<strong>') || text.includes('<strong>')) {
-    // Extract everything from the last occurrence of <strong> or `<strong>
-    const lastBacktickCode = text.lastIndexOf('`<strong>');
-    if (lastBacktickCode !== -1) {
-      text = text.substring(lastBacktickCode).replace(/`/g, '');
-    }
+  // If Gemini output contains thinking blocks, grab paragraph tags or content after Draft
+  if (text.includes('Draft')) {
+    const draftParts = text.split(/Draft\s*\d*:/i);
+    text = draftParts[draftParts.length - 1];
   }
 
-  // 3. Remove lingering evaluation checklists like "* Direct answer first? Yes."
-  text = text.split('\n')
-    .filter(line => !line.trim().startsWith('*   Direct answer') &&
-                    !line.trim().startsWith('*   ChatGPT') &&
-                    !line.trim().startsWith('*   App builder') &&
-                    !line.trim().startsWith('*   Only HTML') &&
-                    !line.trim().startsWith('*   Emojis included'))
-    .join('\n');
+  // Strip evaluation checklist bullets
+  text = text.replace(/\*\s*(Direct|ChatGPT|App|HTML|Emojis|Tone|Role|Goal|Question|Draft).*/gi, '');
+
+  // Extract pure HTML if <p> or <strong> tags are present
+  const firstHtmlTag = text.search(/<(p|strong|div|span|em)>/i);
+  if (firstHtmlTag !== -1) {
+    text = text.substring(firstHtmlTag);
+  }
 
   return text.trim();
 }
@@ -78,10 +72,11 @@ module.exports = async (req, res) => {
     }
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant for the Entropy Reclaimers app (created by Shehroz).
-Provide a direct, friendly, and helpful response formatted ONLY in clean HTML (<p>, <strong>, <br>, <em>) with relevant emojis.
-- If asked about ChatGPT founder: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
-- If asked about this app: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
-Do NOT output any markdown, code blocks, or internal thinking steps.`;
+Directives:
+1. Provide a direct, friendly, and helpful response.
+2. If asked about ChatGPT founder: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
+3. If asked about this app: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
+4. Respond ONLY with HTML paragraphs (<p>...</p>) and bold tags (<strong>...</strong>) with emojis. Do not output planning thoughts or checklists.`;
 
     const userPayload = `Child Context Data: ${JSON.stringify(analytics || {})}\nUser Prompt: "${prompt}"`;
 
