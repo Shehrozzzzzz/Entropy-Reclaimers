@@ -45,7 +45,10 @@ function extractFinalHTML(rawText) {
 
   let result = lines.join('\n').replace(/`/g, '').trim();
 
-  // 4. Ensure we isolate starting from <p> or <strong> tag
+  // 4. Ensure markdown bold **text** is converted to HTML <strong>text</strong>
+  result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // 5. Ensure we isolate starting from <p> or <strong> tag
   const pIdx = result.indexOf('<p>');
   if (pIdx > 0) {
     result = result.substring(pIdx);
