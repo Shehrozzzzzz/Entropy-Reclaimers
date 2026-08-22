@@ -50,20 +50,15 @@ module.exports = async (req, res) => {
     }
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app (created by Shehroz).
-CRITICAL RULES FOR RESPONSES:
-1. ALWAYS give a direct, accurate, and to-the-point answer to the user's question FIRST.
-2. If asked about who created/founded ChatGPT: State clearly that ChatGPT was created by OpenAI, co-founded by Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.
-3. If asked who built this app or Entropy Reclaimers: State clearly that "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
-4. If asked about screen time, app usage, or parental advice, use the student analytics provided.
-5. Do NOT lecture or force off-topic questions back to screen time unless relevant. Be direct, helpful, friendly, and format with clean HTML tags (<strong>, <br>, <em>) and emojis.`;
+CRITICAL INSTRUCTION: Output ONLY your final HTML answer to the user. Do NOT include thinking notes or draft sections.
+Rules:
+1. ALWAYS give a direct, accurate, and to-the-point answer FIRST.
+2. If asked who created/founded ChatGPT: Answer OpenAI (Sam Altman, Greg Brockman, Elon Musk, Ilya Sutskever, etc.).
+3. If asked who built this app / Entropy Reclaimers: Answer "Entropy Reclaimers was designed & developed by Shehroz to help students reduce digital addiction and reclaim focus."
+4. Format output directly in clean HTML (<strong>, <br>, <em>) with relevant emojis.`;
 
-    const userPayload = `Child/Student Context Data:
-${JSON.stringify(analytics || {}, null, 2)}
+    const userPayload = `Child Context Data: ${JSON.stringify(analytics || {})}\nUser Prompt: "${prompt}"`;
 
-User Question/Prompt:
-"${prompt}"`;
-
-    // Dynamically discover supported models for this API key
     let candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
     try {
       const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -110,7 +105,9 @@ User Question/Prompt:
           if (reply.includes('```')) {
             reply = reply.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
           }
-          if (reply.includes('\n\n') && (reply.startsWith('* ') || reply.startsWith('User Role:'))) {
+          if (reply.includes('Draft:')) {
+            reply = reply.split('Draft:')[1];
+          } else if (reply.includes('\n\n') && (reply.startsWith('* ') || reply.startsWith('Role:'))) {
             const parts = reply.split('\n\n');
             reply = parts[parts.length - 1];
           }
