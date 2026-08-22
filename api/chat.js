@@ -1,42 +1,61 @@
 ﻿// Vercel Serverless Function: RECO AI Chatbot API Endpoint
 // Supports Google Gemini API key via process.env.GEMINI_API_KEY or user-provided key
 
-async function handler(req, res) {
-  // Set CORS headers
+function parseBody(req) {
+  return new Promise((resolve) => {
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      return resolve(req.body);
+    }
+    if (typeof req.body === 'string') {
+      try { return resolve(JSON.parse(req.body)); } catch (e) {}
+    }
+    let data = '';
+    req.on('data', (chunk) => { data += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        resolve(data ? JSON.parse(data) : {});
+      } catch (e) {
+        resolve({});
+      }
+    });
+  });
+}
+
+module.exports = async (req, res) => {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method !== 'POST') {
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
   try {
-    let body = req.body;
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch(e) {}
-    }
+    const body = await parseBody(req);
+    const prompt = body.prompt || req.query?.prompt || 'Hello';
+    const analytics = body.analytics || {};
+    const apiKey = body.apiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
 
-    const { prompt, analytics, apiKey } = body || {};
-    const activeKey = apiKey || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
-
-    if (!activeKey) {
+    if (!apiKey) {
       return res.status(200).json({
         fallback: true,
-        reason: 'No API key configured. Using intelligent local rule engine.'
+        reason: 'No API key configured. Using intelligent local rule engine.',
+        debug: {
+          hasEnvGeminiKey: !!process.env.GEMINI_API_KEY,
+          hasEnvOpenAIKey: !!process.env.OPENAI_API_KEY,
+          receivedPrompt: prompt
+        }
       });
     }
 
     // Call Gemini 1.5 Flash endpoint
-    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
+    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
 Your mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
@@ -95,11 +114,8 @@ User Question/Prompt:
     console.error('Serverless function exception:', error);
     return res.status(200).json({
       fallback: true,
-      reason: 'Serverless error',
+      reason: 'Serverless exception',
       error: error.message
     });
   }
-}
-
-module.exports = handler;
-module.exports.default = handler;
+};
