@@ -1,7 +1,7 @@
-// Vercel Serverless Function: RECO AI Chatbot API Endpoint
+﻿// Vercel Serverless Function: RECO AI Chatbot API Endpoint
 // Supports Google Gemini API key via process.env.GEMINI_API_KEY or user-provided key
 
-module.exports = async (req, res) => {
+async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,8 +12,7 @@ module.exports = async (req, res) => {
   );
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
@@ -100,4 +99,7 @@ User Question/Prompt:
       error: error.message
     });
   }
-};
+}
+
+module.exports = handler;
+module.exports.default = handler;
