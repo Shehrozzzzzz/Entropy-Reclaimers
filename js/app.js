@@ -393,7 +393,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('avatar-overlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) AvatarCoach.hide();
   });
-  document.getElementById('show-avatar-btn')?.addEventListener('click', () => AvatarCoach.show());
+  document.getElementById('show-avatar-btn')?.addEventListener('click', () => {
+    if (typeof ParentAIChatbot !== 'undefined') {
+      ParentAIChatbot.toggle();
+    } else if (typeof AvatarCoach !== 'undefined') {
+      AvatarCoach.show();
+    }
+  });
 
   // Tabs (analytics)
   document.querySelectorAll('.tab-btn').forEach(btn => {
