@@ -98,7 +98,7 @@ const VoucherStore = (() => {
   // ── Redeem a voucher ──
   function redeemVoucher(id) {
     const reward = AppData.rewards.find(r => r.id === id);
-    if (!reward || AppData.student.coins < reward.cost) {
+    if (reward === undefined || AppData.student.coins < reward.cost) {
       showToast(`❌ Need more coins!`, 'danger'); return;
     }
     AppData.student.coins -= reward.cost;

@@ -77,7 +77,8 @@ const AppData = {
     { rank: 12,name: "Zara Sheikh",   avatar: "🦚", xp: 2640, branch: "ME",  year: "2nd Year", streak: 7,  focusHrs: 16, isMe: false },
   ],
 
-  rewards: [
+    rewards: [
+    { id: 0, name: "5% Attendance Relaxation", emoji: "🎓", cost: 500, discount: "5% Relaxation", desc: "5% attendance relaxation voucher approved by NIET HOD for high focus score", college: "NIET", category: "campus" },
     { id: 1, name: "Canteen Discount",    emoji: "🍔", cost: 120, discount: "20%", desc: "20% off on any canteen meal at NIET cafeteria", college: "NIET", category: "food" },
     { id: 2, name: "Gym Access Pass",     emoji: "💪", cost: 150, discount: "Free", desc: "1 free gym session at NIET fitness center", college: "NIET", category: "fitness" },
     { id: 3, name: "Library Extra Hours", emoji: "📚", cost: 100, discount: "+2hrs", desc: "2 extra hours in NIET library after closing time", college: "NIET", category: "study" },

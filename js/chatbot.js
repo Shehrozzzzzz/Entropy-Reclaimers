@@ -25,10 +25,12 @@ const ParentAIChatbot = (() => {
 
   // Show/hide FAB
   function showFab() {
-    document.getElementById('ai-chatbot-fab').classList.add('visible');
+    const fab = document.getElementById('ai-chatbot-fab');
+    if (fab) fab.classList.add('visible');
   }
   function hideFab() {
-    document.getElementById('ai-chatbot-fab').classList.remove('visible');
+    const fab = document.getElementById('ai-chatbot-fab');
+    if (fab) fab.classList.remove('visible');
     const modal = document.getElementById('ai-chatbot-modal');
     modal.classList.remove('active');
     isOpen = false;
@@ -41,7 +43,7 @@ const ParentAIChatbot = (() => {
     const mins = total % 60;
     const topApp = [...AppData.usageToday.breakdown].sort((a, b) => b.minutes - a.minutes)[0];
 
-    addBotMessage(`👋 <strong>Hello, Guardian!</strong><br><br>I'm <span class="chat-highlight">RECO AI</span>, your intelligent parental assistant. I've analyzed <strong>John's</strong> device activity for today.<br><br>📊 Today's screen time: <span class="chat-danger">${hours}h ${mins}m</span><br>📱 Most used app: <span class="chat-gold">${topApp ? topApp.app : 'N/A'} (${topApp ? topApp.minutes : 0}m)</span><br><br>Ask me anything about your child's usage, or tap a quick prompt below! 💡`);
+    addBotMessage(`👋 <strong>Hello!</strong><br><br>I'm <span class="chat-highlight">RECO AI</span>, your personal focus coach. I've analyzed your screen time and focus activity for today.<br><br>📊 Today's screen time: <span class="chat-danger">${hours}h ${mins}m</span><br>📱 Most used app: <span class="chat-gold">${topApp ? topApp.app : 'N/A'} (${topApp ? topApp.minutes : 0}m)</span><br><br>Ask me anything about improving your focus, study routines, or reducing distraction! 💡`);
   }
 
   // Build analytics data snapshot
@@ -191,8 +193,8 @@ const ParentAIChatbot = (() => {
     const analytics = getAnalytics();
     const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing assistant and parental advisor for the Entropy Reclaimers app.
-Mission: Help parents and students reduce screen addiction, optimize focus, and build healthy habits.
+    const systemPrompt = `You are RECO AI, an intelligent digital wellbeing & focus coach for college students using the Entropy Reclaimers app (developed by Shehroz).
+Mission: Help college students reduce screen addiction, build deep study habits, optimize focus, and earn campus vouchers.`
 Formatting: HTML tags <strong>, <br>, <em>, <span class="chat-accent">, <span class="chat-danger">, <span class="chat-gold">. Short & friendly with emojis.`;
 
     const userPayload = `Child Context Data: ${JSON.stringify(analytics, null, 2)}\nUser Question: "${userPrompt}"`;

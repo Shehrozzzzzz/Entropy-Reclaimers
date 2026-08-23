@@ -26,12 +26,7 @@ function navigateTo(pageId) {
   if (['dashboard', 'analytics'].includes(pageId)) {
     setTimeout(() => Charts.renderAll(), 100);
   }
-  if (pageId === 'parent') {
-    setTimeout(() => ParentDashboard.refreshAllParentData(), 50);
-    if (typeof ParentAIChatbot !== 'undefined') ParentAIChatbot.showFab();
-  } else {
-    if (typeof ParentAIChatbot !== 'undefined') ParentAIChatbot.hideFab();
-  }
+  if (typeof ParentAIChatbot !== 'undefined') ParentAIChatbot.showFab();
   if (pageId === 'rewards') renderRewards();
   if (pageId === 'leaderboard') LeaderboardEngine.render();
   if (pageId === 'quests') {
@@ -372,18 +367,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Parent toggle
-  document.querySelector('.parent-toggle').addEventListener('click', () => {
-    ParentDashboard.showPINModal();
-  });
+  document.querySelector('.parent-toggle')?.addEventListener('click', () => ParentDashboard?.showPINModal?.());
 
   // PIN modal
   document.querySelectorAll('.pin-key').forEach(key => {
     key.addEventListener('click', () => ParentDashboard.handlePINKey(key.dataset.key));
   });
-  document.getElementById('pin-cancel-btn').addEventListener('click', () => ParentDashboard.hidePINModal());
-  document.getElementById('pin-overlay').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) ParentDashboard.hidePINModal();
-  });
+  document.getElementById('pin-cancel-btn')?.addEventListener('click', () => ParentDashboard?.hidePINModal?.());
+  document.getElementById('pin-overlay')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) ParentDashboard?.hidePINModal?.(); });
 
   // Timer controls
   document.getElementById('timer-start-btn').addEventListener('click', () => FocusTimer.start());
@@ -393,8 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Lock screen
-  document.getElementById('faceid-btn').addEventListener('click', () => FaceAuth.startFaceVerification());
-  document.getElementById('demo-lock-btn').addEventListener('click', () => ParentalLock.triggerManualLock());
+  document.getElementById('faceid-btn')?.addEventListener('click', () => FaceAuth?.startFaceVerification?.());
+  document.getElementById('demo-lock-btn')?.addEventListener('click', () => ParentalLock?.triggerManualLock?.());
 
   // Avatar modal
   document.getElementById('avatar-close-btn').addEventListener('click', () => AvatarCoach.hide());
@@ -414,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial render
   navigateTo('dashboard');
+  if (typeof ParentAIChatbot !== 'undefined') ParentAIChatbot.showFab();
   renderMiniUsage();
   renderAddictionScore();
 

@@ -1,5 +1,5 @@
 ﻿/* © 2026 Shehroz. All rights reserved. Licensed under AGPL-3.0. */
-const CACHE_NAME = 'entropy-v10';
+const CACHE_NAME = 'entropy-v11';
 
 self.addEventListener('install', (event) => {
   console.log('Service Worker v5 installed');
