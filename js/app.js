@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Staggered init — delay heavy work
   setTimeout(() => Charts.renderAll(), 500);
-  setTimeout(() => AvatarCoach.start(), 10000);
+  if (typeof AvatarCoach !== "undefined") AvatarCoach.start();
 
   FocusTimer.updateDisplay();
   ParentalLock.updateUsageDisplay();

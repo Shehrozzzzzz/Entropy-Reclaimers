@@ -5,9 +5,25 @@
 
 const AvatarCoach = (() => {
   let factIndex = 0;
-  let intervalId = null;
+  let timerId = null;
   let isVisible = false;
-  const INTERVAL_MS = 120 * 1000; // 2 minutes
+
+  // ── CONFIGURABLE TIMING CONSTANTS ──
+  const INTERVAL_MS = 60 * 60 * 1000; // 60 minutes between interventions
+  const FIRST_LOAD_DELAY_MS = 10 * 1000; // 10 seconds delay on first session entry
+  const LAST_SHOWN_KEY = 'er_last_reco_shown';
+
+  function getLastShownTimestamp() {
+    return parseInt(localStorage.getItem(LAST_SHOWN_KEY) || '0', 10);
+  }
+
+  function recordShownTimestamp() {
+    localStorage.setItem(LAST_SHOWN_KEY, Date.now().toString());
+  }
+
+  function isFocusSessionActive() {
+    return typeof FocusTimer !== 'undefined' && FocusTimer.isRunning && FocusTimer.isRunning();
+  } // 2 minutes
 
   function getNextFact() {
     const fact = AVATAR_FACTS[factIndex % AVATAR_FACTS.length];
