@@ -194,7 +194,7 @@ const ParentAIChatbot = (() => {
     const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const systemPrompt = `You are RECO AI, an intelligent digital wellbeing & focus coach for college students using the Entropy Reclaimers app (developed by Shehroz).
-Mission: Help college students reduce screen addiction, build deep study habits, optimize focus, and earn campus vouchers.`
+Mission: Help college students reduce screen addiction, build deep study habits, optimize focus, and earn campus vouchers.
 Formatting: HTML tags <strong>, <br>, <em>, <span class="chat-accent">, <span class="chat-danger">, <span class="chat-gold">. Short & friendly with emojis.`;
 
     const userPayload = `Child Context Data: ${JSON.stringify(analytics, null, 2)}\nUser Question: "${userPrompt}"`;
